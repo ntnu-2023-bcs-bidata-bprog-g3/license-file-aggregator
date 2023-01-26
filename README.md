@@ -1,14 +1,15 @@
 # license-aggregator
 
-## Use
+## Compile & Run
 
-Compile the program. (Important to use run.exe as otherwise it won't be caught by .gitIgnore)
+Compile the program with the library directory.
 ```
-    g++ main.cpp -o run.exe
+    g++ main.cpp -L. -lcrypto
 ```
 
 Run by simply running the exe.
 ```
-    ./run.exe
+    ./a.out
 ```
+
 
