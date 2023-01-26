@@ -11,9 +11,9 @@ void openCert();
 
 int main(){
 
-    openCert();
+    std::cout << "Hello world!" << std::endl;
 
-    std::cout << "Hello world! PP" << std::endl;
+    openCert();
 
     return 0;
 }
@@ -22,10 +22,10 @@ void openCert(){
     std::string pathToCert = "C:\\your\\path\\to\\certificate.pem";
     FILE* fp = fopen(pathToCert.c_str(), "r");
     if (!fp) {
-        std::cout << "Could not open certificate";
+        std::cout << "Could not open certificate\n";
         return;
     }X509* cert = PEM_read_X509(fp, NULL, NULL, NULL);if (!cert) {
-        std::cout << "Could not parse certificate";
+        std::cout << "Could not parse certificate\n";
         return;
     }
     fclose(fp);// certificate opened successfully
