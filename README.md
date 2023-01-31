@@ -11,7 +11,7 @@
 ```
     $ mkdir build
     $ cd build
-    $ ccmake ../
+    $ cmake ../
 ```
 
 ## Building with cmake
