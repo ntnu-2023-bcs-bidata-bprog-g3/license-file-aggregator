@@ -1,21 +1,25 @@
 # license-aggregator
 
-## Install openSSL
-
+## Dependencies install
+* Install Crow [Here](https://github.com/CrowCpp/Crow/releases/tag/v1.0+5)
+* Install boost
 ```
-    sudo apt install libssl-dev
-```
-
-## Compile & Run
-
-Compile the program with the library directory.
-```
-    g++ main.cpp -L{Path to openSSL} -lcrypto
+    $ sudo apt-get install libboost-all-dev
 ```
 
-Run by simply running the exe.
+## Setup cmake
 ```
-    ./a.out
+    $ mkdir build
+    $ cd build
+    $ ccmake ../
 ```
+
+## Building with cmake
+
+Inside build folder:
+```
+    $ make
+```
+
 
 
