@@ -20,6 +20,3 @@ Inside build folder:
 ```
     $ make
 ```
-
-
-

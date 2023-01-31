@@ -1,7 +1,12 @@
 #include <iostream>
-
+#include "crow.h"
 
 int main(){
-    std::cout << "Hello World!\n";
-    return 0;
+    crow::SimpleApp app;
+
+    CROW_ROUTE(app, "/")([](){
+        return "Hello world";
+    });
+
+    app.port(8080).run();
 }
