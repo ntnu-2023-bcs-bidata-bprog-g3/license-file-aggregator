@@ -31,8 +31,9 @@
 *.out
 *.app
 
-#build folder
+#folders
 build
+.vscode
 
 #Cmake
 CMakeLists.txt.user
