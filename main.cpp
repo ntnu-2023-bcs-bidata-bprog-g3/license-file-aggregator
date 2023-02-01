@@ -3,9 +3,9 @@
 #include <string>
 #include <map>
 
+template <typename T> crow::json::wvalue map2JSON(std::map<std::string, T> map);
 crow::json::wvalue poolJSON();
-template <typename T>
-crow::json::wvalue map2JSON(std::map<std::string, T> map);
+int poolSubtract(std::string type, int time);
 
 std::map<std::string, int>pool;
 
@@ -16,16 +16,10 @@ int main(){
         return "Hello world";
     });
 
-    CROW_ROUTE(app, "/fill")([](){
-        return "Hello world";
-    });
 
-    CROW_ROUTE(app, "/fill")
-    .methods("POST"_method)
+    CROW_ROUTE(app, "/license")
+    .methods("POST"_method , "DELETE"_method )
     ([](const crow::request& req) {
-        if (req.method != "POST"_method)
-            return crow::response(404);
-        
         auto license = crow::json::load(req.body);
 
         if (!license)
@@ -34,14 +28,19 @@ int main(){
         std::string type = license["type"].s();
         int time = license["time"].i(); 
 
-        pool[type] += time;
+        switch(req.method){
+            case "POST"_method : pool[type] += time; break;
+            case "DELETE"_method : pool[type] -= poolSubtract(type, time); break;
+        }
 
         return crow::response(map2JSON(pool));
     });
 
-
-
     app.port(8080).run();
+}
+
+int poolSubtract(std::string type, int time){
+    return pool[type] - time > 0 ? time : 0;
 }
 
 template <typename T>
