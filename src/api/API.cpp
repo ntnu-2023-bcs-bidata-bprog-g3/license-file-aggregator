@@ -1,6 +1,6 @@
 #include "API.h"
 
-std::map<std::string, int> pool;
+extern std::map<std::string, int> pool;
 
 crow::response license(crow::request req){
     auto license = crow::json::load(req.body);

@@ -7,7 +7,10 @@
 #include "crow.h"
 #include "API.h"
 
+std::map<std::string, int> pool;
+
 int main(){
+    
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")([](){
