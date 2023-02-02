@@ -24,5 +24,11 @@ int main(){
         return license(req);
     });
 
+    CROW_ROUTE(app, "/getLicense")
+    .methods("GET"_method )
+    ([](const crow::request& req){
+        return getLicense(req);
+    });
+
     app.port(8080).run();
 }
