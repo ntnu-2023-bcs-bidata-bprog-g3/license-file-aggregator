@@ -17,15 +17,12 @@ int main(){
         return "Hello world";
     });
 
-
-    CROW_ROUTE(app, "/license")
-    .methods("POST"_method , "DELETE"_method )
+    CROW_ROUTE(app, "/license").methods("POST"_method , "DELETE"_method )
     ([](const crow::request& req) {
         return license(req);
     });
 
-    CROW_ROUTE(app, "/getLicense")
-    .methods("GET"_method )
+    CROW_ROUTE(app, "/getLicense").methods("GET"_method )
     ([](const crow::request& req){
         return getLicense(req);
     });
