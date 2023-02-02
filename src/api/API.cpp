@@ -24,9 +24,13 @@ crow::response getLicense(crow::request req){
 
     const string params[] = {"id"};
     map<string,string> vals = param2map(req.url_params, params, params->length());
-    if(!inMap(vals, (string)"id"))
+
+    auto [ found, id ] = inMap(vals, (string)"id");
+    if(!found)
         return crow::response(map2JSON(pool));
-    return crow::response(inMap(pool, vals["id"]) ? val2JSON(vals["id"], pool[vals["id"]]) : 404);
+
+    auto [ found2, poolVal] = inMap(pool, id);
+    return crow::response(found2 ? val2JSON(id, poolVal) : 404);
 }
 
 template <typename T>
@@ -58,13 +62,25 @@ crow::json::wvalue val2JSON(const std::string key, const T val){
 
 // Checks if key is in map where key and value is not the same
 template <typename T, typename U>
-bool inMap(std::map<U, T> map, const U key){
-    return map.find(key) != map.end();
+std::tuple<bool,U> inMap(std::map<T, U> map, const T key){
+    try{
+        U val = map.at(key);
+        return std::make_tuple(true, val);
+    } catch(...){
+        U obj = {};
+        return std::make_tuple(false, obj);
+    }
 }
 
 template <typename T>
-bool inMap(std::map<T, T> map, const T key){
-    return map.find(key) != map.end();
+std::tuple<bool,T> inMap(std::map<T, T> map, const T key){
+    try{
+        T val = map.at(key);
+        return std::make_tuple(true, val);
+    } catch(...){
+        T obj = {};
+        return std::make_tuple(false, obj);
+    }
 }
 
 // Parse url params and get all values into map.
