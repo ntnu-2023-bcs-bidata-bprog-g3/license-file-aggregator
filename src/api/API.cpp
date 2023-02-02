@@ -3,12 +3,15 @@
 extern std::map<std::string, int> pool;
 
 crow::response license(crow::request req){
-    auto license = crow::json::load(req.body);
+    using namespace std;
+    using namespace crow;
+
+    auto license = json::load(req.body);
 
     if (!license)
-        return crow::response(400);
+        return response(400);
     
-    std::string type = license["type"].s();
+    string type = license["type"].s();
     int time = license["time"].i(); 
 
     switch(req.method){
@@ -16,21 +19,23 @@ crow::response license(crow::request req){
         case "DELETE"_method : pool[type] -= poolSubtract(type, time); break;
     }
 
-    return crow::response(map2JSON(pool));
+    return response(map2JSON(pool));
 }
 
 crow::response getLicense(crow::request req){
     using namespace std;
+    using namespace crow;
 
     const string params[] = {"id"};
     map<string,string> vals = param2map(req.url_params, params, params->length());
 
-    auto [ found, id ] = inMap(vals, (string)"id");
-    if(!found)
-        return crow::response(map2JSON(pool));
+    auto opt_id = inMap(vals, (string)"id");
+    if(!opt_id.has_value())
+        return response(map2JSON(pool));
+    auto id = opt_id.value();
 
-    auto [ found2, poolVal] = inMap(pool, id);
-    return crow::response(found2 ? val2JSON(id, poolVal) : 404);
+    auto opt_val = inMap(pool, id);
+    return response(opt_val.has_value() ? val2JSON(id, opt_val.value()) : 404);
 }
 
 template <typename T>
@@ -62,24 +67,22 @@ crow::json::wvalue val2JSON(const std::string key, const T val){
 
 // Checks if key is in map where key and value is not the same
 template <typename T, typename U>
-std::tuple<bool,U> inMap(std::map<T, U> map, const T key){
+std::optional<U> inMap(std::map<T, U> map, const T key){
     try{
         U val = map.at(key);
-        return std::make_tuple(true, val);
+        return std::optional<U>{val};
     } catch(...){
-        U obj = {};
-        return std::make_tuple(false, obj);
+        return std::nullopt;
     }
 }
 
 template <typename T>
-std::tuple<bool,T> inMap(std::map<T, T> map, const T key){
+std::optional<T> inMap(std::map<T, T> map, const T key){
     try{
         T val = map.at(key);
-        return std::make_tuple(true, val);
+        return std::optional<T>{val};
     } catch(...){
-        T obj = {};
-        return std::make_tuple(false, obj);
+        return std::nullopt;
     }
 }
 
