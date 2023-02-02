@@ -2,6 +2,7 @@
 
 extern std::map<std::string, int> pool;
 
+// Endpoint for either adding to or subtracting from a license pool.
 crow::response license(crow::request req){
     using namespace std;
     using namespace crow;
@@ -11,10 +12,11 @@ crow::response license(crow::request req){
     if (!license)
         return response(400);
     
+    // Fetch values
     string type = license["type"].s();
     int time = license["time"].i(); 
 
-    switch(req.method){
+    switch(req.method){ // Either add or remove time from license
         case "POST"_method : pool[type] += time; break;
         case "DELETE"_method : pool[type] -= poolSubtract(type, time); break;
     }
@@ -22,18 +24,22 @@ crow::response license(crow::request req){
     return response(map2JSON(pool));
 }
 
+// Endpoint for fetching either a specific license pool or all license pools.
 crow::response getLicense(crow::request req){
     using namespace std;
     using namespace crow;
 
+    // Fetch parameter values into map
     const string params[] = {"id"};
     map<string,string> vals = param2map(req.url_params, params, params->length());
 
+    // If ID not requested, return everything
     auto opt_id = inMap(vals, (string)"id");
     if(!opt_id.has_value())
         return response(map2JSON(pool));
     auto id = opt_id.value();
 
+    // If pool value exists, return that, otherwise give 404 
     auto opt_val = inMap(pool, id);
     return response(opt_val.has_value() ? val2JSON(id, opt_val.value()) : 404);
 }
@@ -43,6 +49,7 @@ void print(T str){
     std::cout << str << std::endl;
 }
 
+// Subtract / use time from a license pool
 int poolSubtract(const std::string type, const int time){
     return pool[type] - time > 0 ? time : 0;
 }
@@ -50,6 +57,8 @@ int poolSubtract(const std::string type, const int time){
 
 //####################################
 // TODO:: Separate into own file
+
+// Converts a std map into JSON
 template <typename T>
 crow::json::wvalue map2JSON(std::map<std::string, T> map){
     crow::json::wvalue json;
@@ -58,6 +67,7 @@ crow::json::wvalue map2JSON(std::map<std::string, T> map){
     return json;
 }
 
+// Converts value to crow json and returns
 template <typename T>
 crow::json::wvalue val2JSON(const std::string key, const T val){
     crow::json::wvalue json;
@@ -65,7 +75,7 @@ crow::json::wvalue val2JSON(const std::string key, const T val){
     return json;
 }
 
-// Checks if key is in map where key and value is not the same
+// Fetches value from key in map as optional. Two different types.
 template <typename T, typename U>
 std::optional<U> inMap(std::map<T, U> map, const T key){
     try{
@@ -76,6 +86,7 @@ std::optional<U> inMap(std::map<T, U> map, const T key){
     }
 }
 
+// Fetches value from key in map as optional. One type.
 template <typename T>
 std::optional<T> inMap(std::map<T, T> map, const T key){
     try{
