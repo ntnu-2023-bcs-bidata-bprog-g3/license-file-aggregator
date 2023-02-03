@@ -21,6 +21,9 @@ crow::response license(crow::request req){
         case "DELETE"_method : pool[type] -= poolSubtract(type, time); break;
     }
 
+    // Save changes. TODO:: Update the file instead of completely rewriting it.
+    writePoolToFile(pool);
+
     return response(map2JSON(pool));
 }
 

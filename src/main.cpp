@@ -6,11 +6,14 @@
 // Custom headers
 #include "crow.h"
 #include "API.h"
+#include "fileHandler.h"
 
 std::map<std::string, int> pool;
 
 int main(){
-    
+
+    readPoolFromFile(&pool);
+
     crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")([](){
@@ -28,4 +31,6 @@ int main(){
     });
 
     app.port(8080).run();
+
+    //writePoolToFile(pool);
 }

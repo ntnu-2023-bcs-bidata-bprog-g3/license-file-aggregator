@@ -2,6 +2,7 @@
 #define API_H
 
 #include "crow.h"
+#include "fileHandler.h"
 
 crow::response license(crow::request req);
 crow::response getLicense(crow::request req);
