@@ -32,6 +32,9 @@ crow::response getLicense(crow::request req){
     using namespace std;
     using namespace crow;
 
+    if(pool.empty())
+        return response(val2JSON("error", "No licenses in system"));
+
     // Fetch parameter values into map
     const string params[] = {"id"};
     map<string,string> vals = param2map(req.url_params, params, params->length());
