@@ -1,33 +1,52 @@
-# license-aggregator
+# oatpp-starter [![Build Status](https://dev.azure.com/lganzzzo/lganzzzo/_apis/build/status/oatpp.oatpp-starter?branchName=master)](https://dev.azure.com/lganzzzo/lganzzzo/_build/latest?definitionId=10&branchName=master)
 
-## Dependencies install
-* C++ compiler of your choice
-* Crow
-    * Via terminal:
-        ```bash 
-            $ curl -vLJO https://github.com/CrowCpp/Crow/releases/download/v1.0%2B5/crow-v1.0+5.deb
-            $ sudo apt install ./crow-v1.0+5.deb // 
-        ```
-    * Via browser: [Download](https://github.com/CrowCpp/Crow/releases/tag/v1.0+5), then install.
-* Asio development headers (For crow)
-    ```
-        $ sudo apt-get install -y libasio-dev
-    ```
-* Install boost (For crow)
-    ```bash
-        $ sudo apt-get install libboost-all-dev
-    ```
+Starter project of oat++ (AKA oatpp) application. Based on oatpp Multithreaded (Simple) API.
 
-## Setup cmake
-```bash
-    $ mkdir build
-    $ cd build
-    $ cmake ../
+See more:
+
+- [Oat++ Website](https://oatpp.io/)
+- [Oat++ Github Repository](https://github.com/oatpp/oatpp)
+- [Get Started](https://oatpp.io/docs/start)
+
+## Overview
+
+### Project layout
+
+```
+|- CMakeLists.txt                        // projects CMakeLists.txt
+|- src/
+|    |
+|    |- controller/                      // Folder containing MyController where all endpoints are declared
+|    |- dto/                             // DTOs are declared here
+|    |- AppComponent.hpp                 // Service config
+|    |- App.cpp                          // main() is here
+|
+|- test/                                 // test folder
+|- utility/install-oatpp-modules.sh      // utility script to install required oatpp-modules.  
 ```
 
-## Building with cmake
+---
 
-Inside build folder:
-```bash
-    $ make
+### Build and Run
+
+#### Using CMake
+
+**Requires** 
+
+- `oatpp` module installed. You may run `utility/install-oatpp-modules.sh` 
+script to install required oatpp modules.
+
+```
+$ mkdir build && cd build
+$ cmake ..
+$ make 
+$ ./license_consumer-exe  # - run application.
+
+```
+
+#### In Docker
+
+```
+$ docker build -t oatpp-starter .
+$ docker run -p 8000:8000 -t oatpp-starter
 ```
