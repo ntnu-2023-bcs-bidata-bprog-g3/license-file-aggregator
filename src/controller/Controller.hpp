@@ -84,6 +84,11 @@ public:
 		return createDtoResponse(Status::CODE_200, licenseList);
 	}
 
+	ENDPOINT("GET", "/licenses", getLiceses){
+		auto licenses = getPool();
+		return createDtoResponse(Status::CODE_200, licenses);
+	}
+
 	ENDPOINT("POST", "/upload", upload, REQUEST(std::shared_ptr<IncomingRequest>, request)) {
 		oatpp::data::stream::FileOutputStream fileOutputStream("test123.txt");
 		request->transferBodyToStream(&fileOutputStream); // transfer body chunk by chunk
