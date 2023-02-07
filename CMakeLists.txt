@@ -11,6 +11,8 @@ add_library(${project_name}-lib
         src/controller/Controller.cpp
         src/controller/Controller.hpp
         src/dto/DTOs.hpp
+        src/file/fileHandler.cpp
+        src/file/fileHandler.hpp
 )
 
 ## link libs
