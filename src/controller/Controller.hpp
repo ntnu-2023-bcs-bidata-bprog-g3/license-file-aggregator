@@ -3,6 +3,7 @@
 
 #include "dto/DTOs.hpp"
 
+#include "error.hpp"
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
 
@@ -42,18 +43,18 @@ public:
 	ENDPOINT("POST", "/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
 		// Check if required fields are present.
 		if(!license->name || !license->time)
-			return err(Status::CODE_400, "Invalid request body");
+			return createDtoResponse(Status::CODE_400, err("Invalid request body"));
 
 		license->name = removeWhitespace(license->name);
 
 		// Check if name is filled and if license is in pool
 		if(license->name == "" || license->time == 0)
-			return err(Status::CODE_400, "Name and time requires data.");
+			return createDtoResponse(Status::CODE_400, err("Name and time requires data."));
 
 		pool[license->name] += license->time;
 		writePoolToFile(pool);
 
-		auto licenseList = getPool();
+		const auto licenseList = getPool();
 
 		return createDtoResponse(Status::CODE_200, licenseList);
 	}
@@ -61,31 +62,31 @@ public:
 	ENDPOINT("DELETE", "/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
 		// Check if requires fields are present.
 		if(!license->name || !license->time)
-			return err(Status::CODE_400, "Invalid request body");
+			return createDtoResponse(Status::CODE_400, err("Invalid request body"));
 
 		license->name = removeWhitespace(license->name);
 
 		// Check if name is filled and if license is in pool
 		if(pool.find(license->name) == pool.end())
-			return err(Status::CODE_400, "License not found!");
+			return createDtoResponse(Status::CODE_400, err("License not found!"));
 
 		// Check if license has enough time left to subtract amount.
 		if(pool[license->name] - license->time < 0){
 			auto msg = "License with name \'" + license->name + "\' does not have enough time left to consume ["
 			+std::to_string(license->time)+"] seconds. (["+std::to_string(pool[license->name])+"] seconds left.)";
-			return err(Status::CODE_400, msg);
+			return createDtoResponse(Status::CODE_400, err(msg));
 		}
 
 		pool[license->name] -= license->time;
 		writePoolToFile(pool);
 
-		auto licenseList = getPool();
+		const auto licenseList = getPool();
 
 		return createDtoResponse(Status::CODE_200, licenseList);
 	}
 
 	ENDPOINT("GET", "/licenses", getLiceses){
-		auto licenses = getPool();
+		const auto licenses = getPool();
 		return createDtoResponse(Status::CODE_200, licenses);
 	}
 
@@ -107,14 +108,6 @@ public:
 		}
 		licenseList->licenses = list;
 		return licenseList;
-	}
-
-	// Create new error response
-	std::shared_ptr<oatpp::web::server::api::ApiController::OutgoingResponse> 
-	err(oatpp::web::protocol::http::Status status, std::string msg){
-		auto error = Error::createShared();
-		error->errormsg = msg;
-		return createDtoResponse(Status::CODE_400, error);
 	}
 
 	std::string removeWhitespace(std::string str){
