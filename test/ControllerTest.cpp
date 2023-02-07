@@ -1,6 +1,6 @@
-#include "MyControllerTest.hpp"
+#include "ControllerTest.hpp"
 
-#include "controller/MyController.hpp"
+#include "controller/Controller.hpp"
 
 #include "app/MyApiTestClient.hpp"
 #include "app/TestComponent.hpp"
@@ -9,7 +9,7 @@
 
 #include "oatpp-test/web/ClientServerTestRunner.hpp"
 
-void MyControllerTest::onRun() {
+void ControllerTest::onRun() {
 
   /* Register test components */
   TestComponent component;
@@ -18,7 +18,7 @@ void MyControllerTest::onRun() {
   oatpp::test::web::ClientServerTestRunner runner;
 
   /* Add MyController endpoints to the router of the test server */
-  runner.addController(std::make_shared<MyController>());
+  runner.addController(std::make_shared<Controller>());
 
   /* Run test */
   runner.run([this, &runner] {

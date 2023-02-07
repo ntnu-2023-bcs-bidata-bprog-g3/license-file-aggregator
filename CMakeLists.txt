@@ -8,8 +8,8 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_library(${project_name}-lib
         src/AppComponent.hpp
-        src/controller/MyController.cpp
-        src/controller/MyController.hpp
+        src/controller/Controller.cpp
+        src/controller/Controller.hpp
         src/dto/DTOs.hpp
 )
 
@@ -36,8 +36,8 @@ add_executable(${project_name}-test
         test/tests.cpp
         test/app/TestComponent.hpp
         test/app/MyApiTestClient.hpp
-        test/MyControllerTest.cpp
-        test/MyControllerTest.hpp
+        test/ControllerTest.cpp
+        test/ControllerTest.hpp
 )
 
 target_link_libraries(${project_name}-test ${project_name}-lib)
