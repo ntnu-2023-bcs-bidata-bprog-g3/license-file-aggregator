@@ -8,6 +8,8 @@
 /* Begin Api Client code generation */
 #include OATPP_CODEGEN_BEGIN(ApiClient)
 
+std::map<std::string, int> pool;
+
 /**
  * Test API client.
  * Use this client to call application APIs.

@@ -1,9 +1,11 @@
 #include "./controller/Controller.hpp"
 #include "./AppComponent.hpp"
+#include "shared.h"
 
 #include "oatpp/network/Server.hpp"
 
 #include <iostream>
+std::map<std::string, int> pool;
 
 void run() {
 

@@ -3,6 +3,7 @@
 
 #include "dto/DTOs.hpp"
 
+#include "shared.h"
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
@@ -12,7 +13,7 @@
 #include <iostream>
 #include <string>
 #include <map>
-std::map<std::string, int> pool;
+
 #include OATPP_CODEGEN_BEGIN(ApiController) //<-- Begin Codegen
 
 /**
