@@ -51,6 +51,7 @@ public:
 		if(license->name == "" || license->time == 0)
 			return createDtoResponse(Status::CODE_400, err("Name and time requires data."));
 
+		// If all is good, add time for license.
 		pool[license->name] += license->time;
 		writePoolToFile(pool);
 
@@ -77,6 +78,7 @@ public:
 			return createDtoResponse(Status::CODE_400, err(msg));
 		}
 
+		// If all is good, subtract time for license.
 		pool[license->name] -= license->time;
 		writePoolToFile(pool);
 
