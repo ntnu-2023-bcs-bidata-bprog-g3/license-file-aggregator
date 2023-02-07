@@ -7,6 +7,7 @@
 #include "file/fileHandler.hpp"
 
 #include "oatpp/web/server/api/ApiController.hpp"
+#include "oatpp/core/data/stream/FileStream.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
 
@@ -81,6 +82,12 @@ public:
 		auto licenseList = getPool();
 
 		return createDtoResponse(Status::CODE_200, licenseList);
+	}
+
+	ENDPOINT("POST", "/upload", upload, REQUEST(std::shared_ptr<IncomingRequest>, request)) {
+		oatpp::data::stream::FileOutputStream fileOutputStream("test123.txt");
+		request->transferBodyToStream(&fileOutputStream); // transfer body chunk by chunk
+		return createResponse(Status::CODE_200, "OK");
 	}
 
 	// Convert entire pool to DTOs
