@@ -55,9 +55,8 @@ public:
 		pool[license->name] += license->time;
 		writePoolToFile(pool);
 
-		const auto licenseList = getPool();
-
-		return createDtoResponse(Status::CODE_200, licenseList);
+		license->time = pool[license->name];
+		return createDtoResponse(Status::CODE_200, license);
 	}
 
 	ENDPOINT("DELETE", "/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
@@ -82,9 +81,8 @@ public:
 		pool[license->name] -= license->time;
 		writePoolToFile(pool);
 
-		const auto licenseList = getPool();
-
-		return createDtoResponse(Status::CODE_200, licenseList);
+		license->time = pool[license->name];
+		return createDtoResponse(Status::CODE_200, license);
 	}
 
 	ENDPOINT("GET", "/licenses", getLiceses){
@@ -103,13 +101,18 @@ public:
 		auto licenseList = LicenseList::createShared();
 		oatpp::List<oatpp::Object<License>> list({});
 		for(auto p: pool){
-			auto l = License::createShared();
-			l->name = p.first;
-			l->time = p.second;
+			auto l = getLicenseDTO(p);
 			list->emplace(list->end(), l);
 		}
 		licenseList->licenses = list;
 		return licenseList;
+	}
+
+	License::Wrapper getLicenseDTO(std::pair<std::string, int> license){
+		auto l = License::createShared();
+		l->name = license.first;
+		l->time = license.second;
+		return l;
 	}
 
 	std::string removeWhitespace(std::string str){
