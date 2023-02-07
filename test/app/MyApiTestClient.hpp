@@ -4,7 +4,7 @@
 
 #include "oatpp/web/client/ApiClient.hpp"
 #include "oatpp/core/macro/codegen.hpp"
-
+#include <map>
 /* Begin Api Client code generation */
 #include OATPP_CODEGEN_BEGIN(ApiClient)
 
@@ -16,11 +16,11 @@ std::map<std::string, int> pool;
  */
 class MyApiTestClient : public oatpp::web::client::ApiClient {
 
-  API_CLIENT_INIT(MyApiTestClient)
+	API_CLIENT_INIT(MyApiTestClient)
 
-  API_CALL("GET", "/", getRoot)
+	API_CALL("GET", "/", getRoot)
 
-  // TODO - add more client API calls here
+	// TODO - add more client API calls here
 
 };
 

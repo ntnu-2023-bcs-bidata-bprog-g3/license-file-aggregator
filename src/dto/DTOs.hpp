@@ -12,31 +12,31 @@
  */
 class HelloWorld : public oatpp::DTO {
   
-  DTO_INIT(HelloWorld, DTO)
-  
-  DTO_FIELD(String, message);
+	DTO_INIT(HelloWorld, DTO)
+	
+	DTO_FIELD(String, message);
   
 };
 
 class Error : public oatpp::DTO {
   
-  DTO_INIT(Error, DTO)
-  
-  DTO_FIELD(String, errormsg);
+	DTO_INIT(Error, DTO)
+	
+	DTO_FIELD(String, errormsg);
   
 };
 
 class License : public oatpp::DTO{
-  DTO_INIT(License, DTO)
+	DTO_INIT(License, DTO)
 
-  DTO_FIELD(String, name);
-  DTO_FIELD(Int32, time);
+	DTO_FIELD(String, name);
+	DTO_FIELD(Int32, time);
 };
 
 class LicenseList : public oatpp::DTO{
-  DTO_INIT(LicenseList, DTO)
+	DTO_INIT(LicenseList, DTO)
 
-  DTO_FIELD(List<Object<License>>, licenses);
+	DTO_FIELD(List<Object<License>>, licenses);
 };
 
 #include OATPP_CODEGEN_END(DTO)

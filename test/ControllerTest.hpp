@@ -6,8 +6,8 @@
 class ControllerTest : public oatpp::test::UnitTest {
 public:
 
-  ControllerTest() : UnitTest("TEST[ControllerTest]"){}
-  void onRun() override;
+	ControllerTest() : UnitTest("TEST[ControllerTest]"){}
+	void onRun() override;
 
 };
 
