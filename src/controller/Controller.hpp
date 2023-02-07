@@ -3,7 +3,9 @@
 
 #include "dto/DTOs.hpp"
 
-#include "shared.h"
+#include "shared.hpp"
+#include "file/fileHandler.hpp"
+
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
@@ -48,6 +50,7 @@ public:
 			return err(Status::CODE_400, "Name and time requires data.");
 
 		pool[license->name] += license->time;
+		writePoolToFile(pool);
 
 		auto licenseList = getPool();
 
@@ -73,6 +76,7 @@ public:
 		}
 
 		pool[license->name] -= license->time;
+		writePoolToFile(pool);
 
 		auto licenseList = getPool();
 
