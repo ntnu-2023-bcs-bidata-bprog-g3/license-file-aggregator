@@ -15,13 +15,16 @@ add_library(${project_name}-lib
         src/file/fileHandler.hpp
 )
 
+
 ## link libs
 
 find_package(oatpp 1.3.0 REQUIRED)
+add_subdirectory(oatpp-openssl)
 
 target_link_libraries(${project_name}-lib
         PUBLIC oatpp::oatpp
-        PUBLIC oatpp::oatpp-test
+        PUBLIC oatpp::oatpp-test    
+        PUBLIC oatpp-openssl  
 )
 
 target_include_directories(${project_name}-lib PUBLIC src)
