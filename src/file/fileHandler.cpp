@@ -18,3 +18,11 @@ void readPoolFromFile(std::map<std::string,int> * pool){
         pool->insert(std::pair<std::string, int>(name,time));
     }
 }
+
+std::string readRootCertFromFile(){
+    std::ifstream ifs("../cert/root_cert.crt");
+    std::string content;
+    content.assign( (std::istreambuf_iterator<char>(ifs) ),
+                    (std::istreambuf_iterator<char>()    ) );
+    return content;
+}
