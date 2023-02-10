@@ -3,7 +3,6 @@
 
 #include "dto/DTOs.hpp"
 
-#include "error.hpp"
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
 
@@ -41,15 +40,15 @@ public:
 	}
   
 	ENDPOINT("POST", "/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
-		// Check if required fields are present.
-		if(!license->name || !license->time)
-			return createDtoResponse(Status::CODE_400, err("Invalid request body"));
+		// Assert required fields are present.
+    	OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
+		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
 
 		license->name = removeWhitespace(license->name);
 
-		// Check if name is filled and if license is in pool
-		if(license->name == "" || license->time == 0)
-			return createDtoResponse(Status::CODE_400, err("Name and time requires data."));
+		// Assert fields have valid data.
+		OATPP_ASSERT_HTTP(license->name!="", Status::CODE_400, "Name field cannot be empty.");
+		OATPP_ASSERT_HTTP(license->time > 0, Status::CODE_400, "Time must be greater than 0.")
 
 		// If all is good, add time for license.
 		pool[license->name] += license->time;
@@ -60,22 +59,15 @@ public:
 	}
 
 	ENDPOINT("DELETE", "/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
-		// Check if requires fields are present.
-		if(!license->name || !license->time)
-			return createDtoResponse(Status::CODE_400, err("Invalid request body"));
+		// Assert requires fields are present.
+	    OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
+		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
 
 		license->name = removeWhitespace(license->name);
 
-		// Check if name is filled and if license is in pool
-		if(pool.find(license->name) == pool.end())
-			return createDtoResponse(Status::CODE_400, err("License not found!"));
-
-		// Check if license has enough time left to subtract amount.
-		if(pool[license->name] - license->time < 0){
-			auto msg = "License with name \'" + license->name + "\' does not have enough time left to consume ["
-			+std::to_string(license->time)+"] seconds. (["+std::to_string(pool[license->name])+"] seconds left.)";
-			return createDtoResponse(Status::CODE_400, err(msg));
-		}
+		// Assert license is in pool and that it has enough time to consume request.
+		OATPP_ASSERT_HTTP(pool.find(license->name) != pool.end(), Status::CODE_400, "License not found!");
+		OATPP_ASSERT_HTTP(pool[license->name] - license->time >=0, Status::CODE_400, "Time field exceeds license total time pool!");
 
 		// If all is good, subtract time for license.
 		pool[license->name] -= license->time;

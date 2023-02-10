@@ -18,14 +18,6 @@ class HelloWorld : public oatpp::DTO {
   
 };
 
-class Error : public oatpp::DTO {
-  
-	DTO_INIT(Error, DTO)
-	
-	DTO_FIELD(String, errormsg);
-  
-};
-
 class License : public oatpp::DTO{
 	DTO_INIT(License, DTO)
 
