@@ -9,6 +9,10 @@
 
 #include "oatpp/core/macro/component.hpp"
 
+#include "oatpp-openssl/server/ConnectionProvider.hpp"
+
+#include "oatpp-openssl/Config.hpp"
+
 /**
  *  Class which creates and holds Application components and registers components in oatpp::base::Environment
  *  Order of components initialization is from top to bottom
@@ -16,34 +20,39 @@
 class AppComponent {
 public:
   
-  /**
-   *  Create ConnectionProvider component which listens on the port
-   */
-  OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)([] {
-    return oatpp::network::tcp::server::ConnectionProvider::createShared({"0.0.0.0", 8090, oatpp::network::Address::IP_4});
-  }());
+	/**
+	 *  Create ConnectionProvider component which listens on the port
+	 */
+	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)([] {
+		const char* pemFile = "../cert/key.pem";
+		const char* crtFile = "../cert/cert.crt";
+
+		auto config = oatpp::openssl::Config::createDefaultServerConfigShared(crtFile, pemFile);
+		auto connectionProvider = oatpp::openssl::server::ConnectionProvider::createShared(config, {"localhost", 8443});
+		return connectionProvider;
+	}());
   
-  /**
-   *  Create Router component
-   */
-  OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)([] {
-    return oatpp::web::server::HttpRouter::createShared();
-  }());
-  
-  /**
-   *  Create ConnectionHandler component which uses Router component to route requests
-   */
-  OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([] {
-    OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router); // get Router component
-    return oatpp::web::server::HttpConnectionHandler::createShared(router);
-  }());
-  
-  /**
-   *  Create ObjectMapper component to serialize/deserialize DTOs in Contoller's API
-   */
-  OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)([] {
-    return oatpp::parser::json::mapping::ObjectMapper::createShared();
-  }());
+	/**
+	 *  Create Router component
+	 */
+	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, httpRouter)([] {
+		return oatpp::web::server::HttpRouter::createShared();
+	}());
+	
+	/**
+	 *  Create ConnectionHandler component which uses Router component to route requests
+	 */
+	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ConnectionHandler>, serverConnectionHandler)([] {
+		OATPP_COMPONENT(std::shared_ptr<oatpp::web::server::HttpRouter>, router); // get Router component
+		return oatpp::web::server::HttpConnectionHandler::createShared(router);
+	}());
+	
+	/**
+	 *  Create ObjectMapper component to serialize/deserialize DTOs in Contoller's API
+	 */
+	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::data::mapping::ObjectMapper>, apiObjectMapper)([] {
+		return oatpp::parser::json::mapping::ObjectMapper::createShared();
+	}());
 
 };
 

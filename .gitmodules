@@ -1,0 +1,3 @@
+[submodule "oatpp-openssl"]
+	path = oatpp-openssl
+	url = https://github.com/oatpp/oatpp-openssl
