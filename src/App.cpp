@@ -41,8 +41,7 @@ void run() {
 int main(int argc, const char * argv[]) {
 
 	readPoolFromFile(&pool);
-	auto cert = readRootCertFromFile();
-	std::cout << cert << std::endl;
+	readRootCertFromFile();
 
 	oatpp::base::Environment::init();
 
