@@ -19,7 +19,7 @@ add_library(${project_name}-lib
 ## link libs
 
 find_package(oatpp 1.3.0 REQUIRED)
-find_package(Boost 1.76 REQUIRED)
+find_package(Boost REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 add_subdirectory(oatpp-openssl)
 
