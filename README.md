@@ -29,6 +29,10 @@ See more:
 
 ### Build and Run
 
+Fetch required submodule.
+```
+$ git submodule update --init --recursive
+```
 #### Using CMake
 
 **Requires** 
