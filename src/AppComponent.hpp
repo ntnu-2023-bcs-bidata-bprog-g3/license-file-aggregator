@@ -24,8 +24,8 @@ public:
 	 *  Create ConnectionProvider component which listens on the port
 	 */
 	OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ServerConnectionProvider>, serverConnectionProvider)([] {
-		const char* pemFile = "../cert/key.pem";
-		const char* crtFile = "../cert/cert.crt";
+		const char* pemFile = "../cert/local/key.pem";
+		const char* crtFile = "../cert/local/cert.crt";
 
 		auto config = oatpp::openssl::Config::createDefaultServerConfigShared(crtFile, pemFile);
 		auto connectionProvider = oatpp::openssl::server::ConnectionProvider::createShared(config, {"localhost", 8443});
