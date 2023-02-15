@@ -54,6 +54,7 @@ int main(int argc, const char * argv[]) {
 	std::cout << sig_verify(cert, intermediate);
 
 	readPoolFromFile(&pool);
+	readRootCertFromFile();
 
 	oatpp::base::Environment::init();
 

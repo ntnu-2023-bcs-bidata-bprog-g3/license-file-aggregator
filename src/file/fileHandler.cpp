@@ -26,5 +26,44 @@ void readContents(std::string path, std::string *out){
                 (std::istreambuf_iterator<char>()    ) );
     
     std::cout << *out << std::endl;
+
+}
+
+void readCertFromFile(std::string path, X509 *out){
+    FILE* fp = fopen(path.c_str(), "r");
+    if (!fp) {
+        std::cout << "Could not open certificate\n";
+        return;
+    }
+    X509* cert = PEM_read_X509(fp, NULL, NULL, NULL);
+    if (!cert) {
+        std::cout << "Could not parse certificate\n";
+        return;
+    }
+
+    fclose(fp);//certificate opened successfully
+}
     
+void readRootCertFromFile(){
+    std::ifstream ifs("../cert/root_cert.crt");
+
+    std::string pathToCert = "../cert/root_cert.crt";
+    FILE* fp = fopen(pathToCert.c_str(), "r");
+    if (!fp) {
+        std::cout << "Could not open certificate\n";
+        return;
+    }
+    X509* cert = PEM_read_X509(fp, NULL, NULL, NULL);
+    if (!cert) {
+        std::cout << "Could not parse certificate\n";
+        return;
+    }
+
+    fclose(fp);//certificate opened successfully
+    
+    //char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
+    //char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
+    //std::cout << subj << " " << issuer << std::endl;
+    
+    X509_free(cert);
 }
