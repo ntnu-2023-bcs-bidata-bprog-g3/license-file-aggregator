@@ -41,6 +41,7 @@ void run() {
 int main(int argc, const char * argv[]) {
 
 	readPoolFromFile(&pool);
+	readRootCertFromFile();
 
 	oatpp::base::Environment::init();
 
