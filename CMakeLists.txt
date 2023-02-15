@@ -13,6 +13,8 @@ add_library(${project_name}-lib
         src/dto/DTOs.hpp
         src/file/fileHandler.cpp
         src/file/fileHandler.hpp
+        src/ssl/certificates.cpp
+        src/ssl/certificates.hpp
 )
 
 
