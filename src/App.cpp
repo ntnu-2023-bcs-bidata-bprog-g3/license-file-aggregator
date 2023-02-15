@@ -2,6 +2,7 @@
 #include "./AppComponent.hpp"
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
+#include "ssl/certificates.hpp"
 
 #include "oatpp/network/Server.hpp"
 
@@ -39,6 +40,18 @@ void run() {
  *  main
  */
 int main(int argc, const char * argv[]) {
+
+	OpenSSL_add_all_algorithms();
+    OpenSSL_add_all_ciphers();
+    OpenSSL_add_all_digests(); 
+
+	std::string cert = "";
+    std::string intermediate = "";
+	readContents("../cert/external/root.cert", &cert);
+	readContents("../cert/external/intermediate.cert", &intermediate);
+
+	std::cout << "hello";
+	std::cout << sig_verify(cert, intermediate);
 
 	readPoolFromFile(&pool);
 
