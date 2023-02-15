@@ -18,3 +18,13 @@ void readPoolFromFile(std::map<std::string,int> * pool){
         pool->insert(std::pair<std::string, int>(name,time));
     }
 }
+
+void readContents(std::string path, std::string *out){
+    
+    std::ifstream ifs(path);
+    out->assign( (std::istreambuf_iterator<char>(ifs) ),
+                (std::istreambuf_iterator<char>()    ) );
+    
+    std::cout << *out << std::endl;
+    
+}
