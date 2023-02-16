@@ -1,8 +1,8 @@
-name: 
+name: build
 run-name: Build project
 on: [push, pull_request]
 jobs:
-  Explore-GitHub-Actions:
+  Build-and-run-tests:
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -10,7 +10,10 @@ jobs:
       - name: Install dependencies 
         run: |
           cd utility/ && sudo ./install-oatpp-modules.sh && cd ..
+          sudo apt update && sudo apt dist-upgrade -y
           sudo apt-get install libboost-all-dev libssl-dev -y
           git submodule update --init --recursive
       - name: Build project
         run: mkdir build && cd build && cmake .. && make
+      - name: Run tests
+        run: cd build && sudo ./license_consumer-test
