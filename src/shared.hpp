@@ -1,10 +1,10 @@
 
-#ifndef shared_h
-#define shared_h
+#ifndef shared_hpp
+#define shared_hpp
 
 #include<map>
 #include<string>
 
 extern std::map<std::string, int> pool;
 
-#endif /* shared_h */
+#endif /* shared_hpp */
