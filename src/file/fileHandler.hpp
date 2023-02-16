@@ -5,9 +5,7 @@
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <cstring>
-#include <streambuf>
-#include <optional>
+#include "error/error.hpp"
 
 #include <openssl/pem.h>
 #include <openssl/x509.h>

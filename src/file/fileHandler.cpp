@@ -34,21 +34,21 @@ X509 * readCertFromFile(std::string path){
     // Open file
     FILE* fp = fopen(path.c_str(), "r");
     if(!fp){
-        std::cout << "File not found." << std::endl;
+        err("File with path ["+path+"]. Not found.");
         return NULL;
     }
 
     // Read certificate
     X509 * cert = PEM_read_X509(fp, NULL, 0, NULL);
     if(!cert){
-        std::cout << "Cert not read" << std::endl;
+        err("Cert at ["+path+"] could not be read sucessfully.");
         return NULL;
     }
 
     // Close file
     int result = fclose(fp);
     if (result != 0) {
-        std:: cout << "File did not close properly" << std::endl;
+        err("Could not close file at ["+path+"] properly.");
         return NULL;
     }
 

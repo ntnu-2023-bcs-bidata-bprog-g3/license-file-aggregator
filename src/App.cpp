@@ -3,6 +3,7 @@
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
 #include "ssl/certificates.hpp"
+#include "error/error.hpp"
 
 #include "oatpp/network/Server.hpp"
 
@@ -53,7 +54,7 @@ int main(int argc, const char * argv[]) {
 	const int result =  sig_verify(intermediate, root);
 
 	if(result != 1){
-		std::cout << "Could not verify intermediate certificate against root certificate." << std::endl;
+		err("Could not verify intermediate certificate against root certificate.");
 		return 0;
 	}
 
