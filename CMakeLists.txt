@@ -8,11 +8,15 @@ set(CMAKE_CXX_STANDARD 11)
 
 add_library(${project_name}-lib
         src/AppComponent.hpp
+        src/error/error.hpp
+        src/error/error.cpp
         src/controller/Controller.cpp
         src/controller/Controller.hpp
         src/dto/DTOs.hpp
         src/file/fileHandler.cpp
         src/file/fileHandler.hpp
+        src/ssl/certificates.cpp
+        src/ssl/certificates.hpp
 )
 
 

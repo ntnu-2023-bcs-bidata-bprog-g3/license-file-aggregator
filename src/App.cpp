@@ -2,6 +2,8 @@
 #include "./AppComponent.hpp"
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
+#include "ssl/certificates.hpp"
+#include "error/error.hpp"
 
 #include "oatpp/network/Server.hpp"
 
@@ -40,8 +42,26 @@ void run() {
  */
 int main(int argc, const char * argv[]) {
 
+	OpenSSL_add_all_algorithms();
+    OpenSSL_add_all_ciphers();
+    OpenSSL_add_all_digests(); 
+
+	X509 * root = readCertFromFile("../cert/external/root.cert");
+	X509 * intermediate = readCertFromFile("../cert/external/intermediate.cert");
+	if(root == NULL || intermediate == NULL){
+		return 0;
+	}
+	const int result =  sig_verify(intermediate, root);
+
+	if(result != 1){
+		err("Could not verify intermediate certificate against root certificate.");
+		return 0;
+	}
+
+	X509_free(root);
+	X509_free(intermediate);
+
 	readPoolFromFile(&pool);
-	readRootCertFromFile();
 
 	oatpp::base::Environment::init();
 

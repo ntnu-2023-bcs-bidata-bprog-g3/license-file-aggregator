@@ -19,26 +19,38 @@ void readPoolFromFile(std::map<std::string,int> * pool){
     }
 }
 
-void readRootCertFromFile(){
-    std::ifstream ifs("../cert/root_cert.crt");
-
-    std::string pathToCert = "../cert/root_cert.crt";
-    FILE* fp = fopen(pathToCert.c_str(), "r");
-    if (!fp) {
-        std::cout << "Could not open certificate\n";
-        return;
-    }
-    X509* cert = PEM_read_X509(fp, NULL, NULL, NULL);
-    if (!cert) {
-        std::cout << "Could not parse certificate\n";
-        return;
-    }
-
-    fclose(fp);//certificate opened successfully
+void readContents(std::string path, std::string *out){
     
-    //char *subj = X509_NAME_oneline(X509_get_subject_name(cert), NULL, 0);
-    //char *issuer = X509_NAME_oneline(X509_get_issuer_name(cert), NULL, 0);
-    //std::cout << subj << " " << issuer << std::endl;
+    std::ifstream ifs(path);
+    out->assign( (std::istreambuf_iterator<char>(ifs) ),
+                (std::istreambuf_iterator<char>()    ) );
     
-    X509_free(cert);
+    std::cout << *out << std::endl;
+
+}
+
+X509 * readCertFromFile(std::string path){
+    
+    // Open file
+    FILE* fp = fopen(path.c_str(), "r");
+    if(!fp){
+        err("File with path ["+path+"]. Not found.");
+        return NULL;
+    }
+
+    // Read certificate
+    X509 * cert = PEM_read_X509(fp, NULL, 0, NULL);
+    if(!cert){
+        err("Cert at ["+path+"] could not be read sucessfully.");
+        return NULL;
+    }
+
+    // Close file
+    int result = fclose(fp);
+    if (result != 0) {
+        err("Could not close file at ["+path+"] properly.");
+        return NULL;
+    }
+
+    return cert;
 }
