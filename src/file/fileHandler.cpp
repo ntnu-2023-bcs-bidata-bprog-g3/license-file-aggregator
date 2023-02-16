@@ -51,7 +51,6 @@ X509 * readCertFromFile(std::string path){
         err("Could not close file at ["+path+"] properly.");
         return NULL;
     }
-    // test workflow
 
     return cert;
 }
