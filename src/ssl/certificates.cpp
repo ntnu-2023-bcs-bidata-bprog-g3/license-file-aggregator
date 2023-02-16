@@ -1,35 +1,9 @@
 #include "certificates.hpp"
 
-int sig_verify(const std::string cert_pem, const std::string intermediate_pem)
+int sig_verify(X509* intermediate, X509* root)
 {
-
-    // intermediate
-    char intermediate[intermediate_pem.length()];
-    strcpy(intermediate, intermediate_pem.c_str());
-
-    BIO *b = BIO_new(BIO_s_mem());
-    BIO_puts(b, intermediate);
-    X509 * issuer = PEM_read_bio_X509(b, NULL, NULL, NULL);
-    EVP_PKEY *signing_key=X509_get_pubkey(issuer);
-
-    // root
-    char cert[cert_pem.length()];
-    strcpy(cert, cert_pem.c_str());
-
-    BIO *c = BIO_new(BIO_s_mem());
-    BIO_puts(c, cert);
-    X509 * x509 = PEM_read_bio_X509(c, NULL, NULL, NULL);
- 
-    // Verify
-    int result = X509_verify(x509, signing_key);
- 
-    EVP_PKEY_free(signing_key);
-    BIO_free(b);
-    BIO_free(c);
-    X509_free(x509);
-    X509_free(issuer);
- 
-    return result;
+    EVP_PKEY *signing_key = X509_get_pubkey(root);
+    return X509_verify(intermediate, signing_key); 
 }
 
 /*
