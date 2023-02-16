@@ -45,16 +45,22 @@ int main(int argc, const char * argv[]) {
     OpenSSL_add_all_ciphers();
     OpenSSL_add_all_digests(); 
 
-	std::string cert = "";
-    std::string intermediate = "";
-	readContents("../cert/external/root.cert", &cert);
-	readContents("../cert/external/intermediate.cert", &intermediate);
+	X509 * root = readCertFromFile("../cert/external/root.cert");
+	X509 * intermediate = readCertFromFile("../cert/external/intermediate.cert");
+	if(root == NULL || intermediate == NULL){
+		return 0;
+	}
+	const int result =  sig_verify(intermediate, root);
 
-	std::cout << "hello";
-	std::cout << sig_verify(cert, intermediate);
+	if(result != 1){
+		std::cout << "Could not verify intermediate certificate against root certificate." << std::endl;
+		return 0;
+	}
+
+	X509_free(root);
+	X509_free(intermediate);
 
 	readPoolFromFile(&pool);
-	readRootCertFromFile();
 
 	oatpp::base::Environment::init();
 
