@@ -5,17 +5,23 @@
 
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
+#include "ssl/certificates.hpp"
 
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/data/stream/FileStream.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/mime/multipart/TemporaryFileProvider.hpp"
+#include "oatpp/web/mime/multipart/Reader.hpp"
+#include "oatpp/web/mime/multipart/PartList.hpp"
 
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
 #include <string>
 #include <map>
+
+namespace multipart = oatpp::web::mime::multipart;
 
 #include OATPP_CODEGEN_BEGIN(ApiController) //<-- Begin Codegen
 
@@ -86,6 +92,64 @@ public:
 		oatpp::data::stream::FileOutputStream fileOutputStream("test123.txt");
 		request->transferBodyToStream(&fileOutputStream); // transfer body chunk by chunk
 		return createResponse(Status::CODE_200, "OK");
+	}
+
+	ENDPOINT("POST", "/upload/multipart", multiUpload,
+			REQUEST(std::shared_ptr<IncomingRequest>, request))
+	{
+
+		/* create multipart object */
+		multipart::PartList multipart(request->getHeaders());
+
+		/* create multipart reader */
+		multipart::Reader multipartReader(&multipart);
+
+		/* setup reader to stream parts to a temporary files by default */
+		multipartReader.setDefaultPartReader(multipart::createTemporaryFilePartReader("/tmp" /* /tmp directory */));
+
+		/* upload multipart data */
+		request->transferBody(&multipartReader);
+
+		/* list all parts and locations to corresponding temporary files */
+		auto parts = multipart.getAllParts();
+
+		// Data for filtering out invalid parts.
+		enum Part{intermediate, license, signature};
+		std::map<std::string, Part> acceptedParts{{"intermediate", intermediate}, {"license", license}, {"signature", signature}};
+
+		X509 * intermediateCert = NULL;
+		//TODO:: Signature variable
+		//TODO:: License variable
+		for(auto& p : parts) {
+
+			// If part is not present in accepted list of parts, continue.
+			if(!acceptedParts.count(p->getName()->c_str())){
+				continue;
+			}
+
+			// Get correct value for part
+			Part part = acceptedParts[p->getName()->c_str()];
+			auto location = p->getPayload()->getLocation()->c_str();
+
+			switch(part){ 
+				case intermediate: intermediateCert = readCertFromFile(location); break;
+				case license: break; // TODO:: Add support for reading license file;
+				case signature: break; // TODO:: Add support for reading signature file;
+			}
+		}
+
+		OATPP_ASSERT_HTTP(intermediateCert, Status::CODE_400, "Certificate could not be found");
+		//TODO:: Assert license
+		//TODO:: Assert signature
+
+		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
+		OATPP_ASSERT_HTTP(sig_verify(intermediateCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
+
+		X509_free(intermediateCert);
+
+		/* return 200 */
+		return createResponse(Status::CODE_200, "OK");
+
 	}
 
 	// Convert entire pool to DTOs
