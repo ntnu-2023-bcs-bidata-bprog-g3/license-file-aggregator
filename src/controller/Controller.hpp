@@ -140,6 +140,7 @@ public:
 		OATPP_ASSERT_HTTP(sig_verify(intermediateCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
 
 		X509_free(intermediateCert);
+		X509_free(rootCert);
 
 		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");
