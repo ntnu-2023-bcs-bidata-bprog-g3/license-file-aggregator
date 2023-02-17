@@ -5,17 +5,23 @@
 
 #include "shared.hpp"
 #include "file/fileHandler.hpp"
+#include "ssl/certificates.hpp"
 
 #include "oatpp/web/server/api/ApiController.hpp"
 #include "oatpp/core/data/stream/FileStream.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include "oatpp/core/macro/component.hpp"
+#include "oatpp/web/mime/multipart/TemporaryFileProvider.hpp"
+#include "oatpp/web/mime/multipart/Reader.hpp"
+#include "oatpp/web/mime/multipart/PartList.hpp"
 
 #include <boost/algorithm/string.hpp>
 
 #include <iostream>
 #include <string>
 #include <map>
+
+namespace multipart = oatpp::web::mime::multipart;
 
 #include OATPP_CODEGEN_BEGIN(ApiController) //<-- Begin Codegen
 
@@ -39,7 +45,7 @@ public:
 		return createDtoResponse(Status::CODE_200, dto);
 	}
   
-	ENDPOINT("POST", "/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
+	ENDPOINT("POST", "/api/v1/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
 		// Assert required fields are present.
     	OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
 		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
@@ -58,7 +64,7 @@ public:
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
-	ENDPOINT("DELETE", "/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
+	ENDPOINT("DELETE", "/api/v1/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
 		// Assert requires fields are present.
 	    OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
 		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
@@ -77,15 +83,68 @@ public:
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
-	ENDPOINT("GET", "/licenses", getLiceses){
+	ENDPOINT("GET", "/api/v1/licenses", getLiceses){
 		const auto licenses = getPool();
 		return createDtoResponse(Status::CODE_200, licenses);
 	}
 
-	ENDPOINT("POST", "/upload", upload, REQUEST(std::shared_ptr<IncomingRequest>, request)) {
-		oatpp::data::stream::FileOutputStream fileOutputStream("test123.txt");
-		request->transferBodyToStream(&fileOutputStream); // transfer body chunk by chunk
+	ENDPOINT("POST", "/api/v1/upload", multiUpload,
+			REQUEST(std::shared_ptr<IncomingRequest>, request))
+	{
+
+		/* create multipart object */
+		multipart::PartList multipart(request->getHeaders());
+
+		/* create multipart reader */
+		multipart::Reader multipartReader(&multipart);
+
+		/* setup reader to stream parts to a temporary files by default */
+		multipartReader.setDefaultPartReader(multipart::createTemporaryFilePartReader("/tmp" /* /tmp directory */));
+
+		/* upload multipart data */
+		request->transferBody(&multipartReader);
+
+		/* list all parts and locations to corresponding temporary files */
+		auto parts = multipart.getAllParts();
+
+		// Data for filtering out invalid parts.
+		enum Part{intermediate, license, signature};
+		std::map<std::string, Part> acceptedParts{{"intermediate", intermediate}, {"license", license}, {"signature", signature}};
+
+		X509 * intermediateCert = NULL;
+		//TODO:: Signature variable
+		//TODO:: License variable
+		for(auto& p : parts) {
+
+			// If part is not present in accepted list of parts, continue.
+			if(!acceptedParts.count(p->getName()->c_str())){
+				continue;
+			}
+
+			// Get correct value for part
+			Part part = acceptedParts[p->getName()->c_str()];
+			auto location = p->getPayload()->getLocation()->c_str();
+
+			switch(part){ 
+				case intermediate: intermediateCert = readCertFromFile(location); break;
+				case license: break; // TODO:: Add support for reading license file;
+				case signature: break; // TODO:: Add support for reading signature file;
+			}
+		}
+
+		OATPP_ASSERT_HTTP(intermediateCert, Status::CODE_400, "Certificate could not be found");
+		//TODO:: Assert license
+		//TODO:: Assert signature
+
+		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
+		OATPP_ASSERT_HTTP(sig_verify(intermediateCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
+
+		X509_free(intermediateCert);
+		X509_free(rootCert);
+
+		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");
+
 	}
 
 	// Convert entire pool to DTOs
