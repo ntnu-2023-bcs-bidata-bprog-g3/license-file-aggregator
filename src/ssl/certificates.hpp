@@ -7,7 +7,7 @@
 
 #include <string>
 
-int sig_verify(X509* cert_pem, X509* intermediate_pem);
+int sig_verify(X509* intermediate, X509* root);
 void cert_info(const char* cert_pem);
 
 #endif /* certificates_HPP */
