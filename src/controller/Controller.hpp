@@ -45,7 +45,7 @@ public:
 		return createDtoResponse(Status::CODE_200, dto);
 	}
   
-	ENDPOINT("POST", "/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
+	ENDPOINT("POST", "/api/v1/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
 		// Assert required fields are present.
     	OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
 		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
@@ -64,7 +64,7 @@ public:
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
-	ENDPOINT("DELETE", "/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
+	ENDPOINT("DELETE", "/api/v1/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
 		// Assert requires fields are present.
 	    OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
 		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
@@ -83,12 +83,12 @@ public:
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
-	ENDPOINT("GET", "/licenses", getLiceses){
+	ENDPOINT("GET", "/api/v1/licenses", getLiceses){
 		const auto licenses = getPool();
 		return createDtoResponse(Status::CODE_200, licenses);
 	}
 
-	ENDPOINT("POST", "/upload/multipart", multiUpload,
+	ENDPOINT("POST", "/api/v1/upload", multiUpload,
 			REQUEST(std::shared_ptr<IncomingRequest>, request))
 	{
 
