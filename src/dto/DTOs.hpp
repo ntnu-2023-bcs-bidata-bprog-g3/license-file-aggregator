@@ -31,6 +31,24 @@ class LicenseList : public oatpp::DTO{
 	DTO_FIELD(List<Object<License>>, licenses);
 };
 
+class SubLicense : public oatpp::DTO{
+	DTO_INIT(SubLicense, DTO)
+
+	DTO_FIELD(Int32, id);
+	DTO_FIELD(String, name);
+	DTO_FIELD(Int32, duration);
+	DTO_FIELD(Fields<String>, info);
+};
+
+class SubLicenseFile : public oatpp::DTO{
+	DTO_INIT(SubLicenseFile, DTO)
+
+	DTO_FIELD(Fields<String>, info);
+	DTO_FIELD(Object<SubLicense>, license);
+};
+
+
+
 #include OATPP_CODEGEN_END(DTO)
 
 #endif /* DTOs_hpp */
