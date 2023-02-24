@@ -84,7 +84,7 @@ public:
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
-	ENDPOINT("GET", "/api/v1/licenses", getLiceses){
+	ENDPOINT("GET", "/api/v1/licenses", getLicenses){
 		const auto licenses = getPool();
 		return createDtoResponse(Status::CODE_200, licenses);
 	}
@@ -111,21 +111,6 @@ public:
 		// Data for filtering out invalid parts.
 		enum Part{intermediate, license, signature};
 		std::map<std::string, Part> acceptedParts{{"intermediate", intermediate}, {"license", license}, {"signature", signature}};
-
-
-		/* create serializer and deserializer configurations */
-		//auto serializeConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
-		//auto deserializeConfig = oatpp::parser::json::mapping::Deserializer::Config::createShared();
-
-		/* enable beautifier */
-		//serializeConfig->useBeautifier = true;
-
-		//auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared(serializeConfig, deserializeConfig);
-		//OATPP_LOGD("TEST", "HELLO");
-		//auto obj = jsonObjectMapper->readFromString<oatpp::Object<HelloWorld>>("{message:\"HELLO\"}");
-		//OATPP_LOGD("TEST", "HELLO");
-		//OATPP_LOGD("TEST", "message:%s", obj->message);
-
 
 		std::string intermediateCert = "";
 		std::string licenseFile = "";
@@ -167,6 +152,19 @@ public:
 		// Assert success of all previous system commands.
 		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
 		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
+
+		/* create serializer and deserializer configurations */
+		auto serializeConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
+		auto deserializeConfig = oatpp::parser::json::mapping::Deserializer::Config::createShared();
+		serializeConfig->useBeautifier = true; // Enable beautifier
+		auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+
+		// Parse license json into custom DTO
+		std::string str;
+		readContents(licenseFile, &str);
+		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
+		
+		// Add license to pool. 
 
 		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");

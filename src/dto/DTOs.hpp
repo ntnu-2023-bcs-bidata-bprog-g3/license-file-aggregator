@@ -34,10 +34,9 @@ class LicenseList : public oatpp::DTO{
 class SubLicense : public oatpp::DTO{
 	DTO_INIT(SubLicense, DTO)
 
-	DTO_FIELD(Int32, id);
 	DTO_FIELD(String, name);
 	DTO_FIELD(Int32, duration);
-	DTO_FIELD(Fields<String>, info);
+	DTO_FIELD(String, description);
 };
 
 class SubLicenseFile : public oatpp::DTO{
