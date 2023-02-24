@@ -45,27 +45,6 @@ public:
 		dto->message = "Hello World!";
 		return createDtoResponse(Status::CODE_200, dto);
 	}
-  
-  /*
-	ENDPOINT("POST", "/api/v1/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
-		// Assert required fields are present.
-    	OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
-		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
-
-		license->name = removeWhitespace(license->name);
-
-		// Assert fields have valid data.
-		OATPP_ASSERT_HTTP(license->name!="", Status::CODE_400, "Name field cannot be empty.");
-		OATPP_ASSERT_HTTP(license->time > 0, Status::CODE_400, "Time must be greater than 0.")
-
-		// If all is good, add time for license.
-		pool[license->name] += license->time;
-		writePoolToFile(pool);
-
-		license->time = pool[license->name];
-		return createDtoResponse(Status::CODE_200, license);
-	}
-  */
 
 	/*
 	ENDPOINT("DELETE", "/api/v1/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
