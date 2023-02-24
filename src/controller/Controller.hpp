@@ -46,6 +46,7 @@ public:
 		return createDtoResponse(Status::CODE_200, dto);
 	}
   
+  /*
 	ENDPOINT("POST", "/api/v1/AddLicense", AddLicense, BODY_DTO(Object<License>, license)){
 		// Assert required fields are present.
     	OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
@@ -64,7 +65,9 @@ public:
 		license->time = pool[license->name];
 		return createDtoResponse(Status::CODE_200, license);
 	}
+  */
 
+	/*
 	ENDPOINT("DELETE", "/api/v1/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
 		// Assert requires fields are present.
 	    OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
@@ -84,6 +87,7 @@ public:
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
+	*/
 	ENDPOINT("GET", "/api/v1/licenses", getLicenses){
 		const auto licenses = getPool();
 		return createDtoResponse(Status::CODE_200, licenses);
@@ -165,6 +169,7 @@ public:
 		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
 		
 		// Add license to pool. 
+		addLicenseToPool(payload->license);
 
 		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");
@@ -175,18 +180,20 @@ public:
 		auto licenseList = LicenseList::createShared();
 		oatpp::List<oatpp::Object<License>> list({});
 		for(auto p: pool){
-			auto l = getLicenseDTO(p);
-			list->emplace(list->end(), l);
+			list->emplace(list->end(), p.second);
 		}
 		licenseList->licenses = list;
 		return licenseList;
 	}
 
-	License::Wrapper getLicenseDTO(std::pair<std::string, int> license){
-		auto l = License::createShared();
-		l->name = license.first;
-		l->time = license.second;
-		return l;
+	void addLicenseToPool(oatpp::Object<License> license){
+		if (pool.find(license->name)!= pool.end()){
+			auto curr = pool[license->name];
+			curr->duration=license->duration+curr->duration;
+			pool[license->name] = curr;
+		} else {
+			pool[license->name] = license;
+		}
 	}
 
 	std::string removeWhitespace(std::string str){

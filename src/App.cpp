@@ -8,7 +8,7 @@
 #include "oatpp/network/Server.hpp"
 
 #include <iostream>
-std::map<std::string, int> pool;
+std::unordered_map<std::string, License::Wrapper> pool;
 
 void run() {
 
@@ -50,8 +50,6 @@ int main(int argc, const char * argv[]) {
 	X509 * root = readCertFromFile("../cert/external/root.cert");
 	//TODO:: Add check that cert was read successfully. Otherwise exit program.
 	X509_free(root);
-
-	readPoolFromFile(&pool);
 
 	oatpp::base::Environment::init();
 
