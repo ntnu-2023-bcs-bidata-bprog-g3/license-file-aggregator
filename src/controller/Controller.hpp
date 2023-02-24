@@ -14,6 +14,7 @@
 #include "oatpp/web/mime/multipart/TemporaryFileProvider.hpp"
 #include "oatpp/web/mime/multipart/Reader.hpp"
 #include "oatpp/web/mime/multipart/PartList.hpp"
+#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
 
 #include <boost/algorithm/string.hpp>
 
@@ -111,9 +112,24 @@ public:
 		enum Part{intermediate, license, signature};
 		std::map<std::string, Part> acceptedParts{{"intermediate", intermediate}, {"license", license}, {"signature", signature}};
 
-		X509 * intermediateCert = NULL;
-		//TODO:: Signature variable
-		//TODO:: License variable
+
+		/* create serializer and deserializer configurations */
+		//auto serializeConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
+		//auto deserializeConfig = oatpp::parser::json::mapping::Deserializer::Config::createShared();
+
+		/* enable beautifier */
+		//serializeConfig->useBeautifier = true;
+
+		//auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared(serializeConfig, deserializeConfig);
+		//OATPP_LOGD("TEST", "HELLO");
+		//auto obj = jsonObjectMapper->readFromString<oatpp::Object<HelloWorld>>("{message:\"HELLO\"}");
+		//OATPP_LOGD("TEST", "HELLO");
+		//OATPP_LOGD("TEST", "message:%s", obj->message);
+
+
+		std::string intermediateCert = "";
+		std::string licenseFile = "";
+		std::string signatureFile = "";
 		for(auto& p : parts) {
 
 			// If part is not present in accepted list of parts, continue.
@@ -126,25 +142,34 @@ public:
 			auto location = p->getPayload()->getLocation()->c_str();
 
 			switch(part){ 
-				case intermediate: intermediateCert = readCertFromFile(location); break;
-				case license: break; // TODO:: Add support for reading license file;
-				case signature: break; // TODO:: Add support for reading signature file;
+				case intermediate: intermediateCert = location; break;
+				case license: licenseFile = location; break; // TODO:: Add support for reading license file;
+				case signature: signatureFile = location; break; // TODO:: Add support for reading signature file;
 			}
 		}
 
-		OATPP_ASSERT_HTTP(intermediateCert, Status::CODE_400, "Certificate could not be found");
-		//TODO:: Assert license
-		//TODO:: Assert signature
+		// Assert all files present
+		OATPP_ASSERT_HTTP(intermediateCert!="", Status::CODE_400, "Certificate could not be found.");
+		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
+		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
 
+		// Verify root and intermediate certs
+		X509 * intCert = readCertFromFile(intermediateCert);
 		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
-		OATPP_ASSERT_HTTP(sig_verify(intermediateCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
-
-		X509_free(intermediateCert);
+		OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
+		X509_free(intCert);
 		X509_free(rootCert);
+
+		// Derive intermediate pub.key and try to verify siganture against key and license payload.
+		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
+		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
+
+		// Assert success of all previous system commands.
+		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
+		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
 
 		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");
-
 	}
 
 	// Convert entire pool to DTOs
