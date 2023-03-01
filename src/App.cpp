@@ -7,6 +7,12 @@
 
 #include "oatpp/network/Server.hpp"
 
+#include "oatpp/web/client/ApiClient.hpp"
+#include "oatpp/web/client/HttpRequestExecutor.hpp"
+#include "oatpp/parser/json/mapping/ObjectMapper.hpp"
+#include "oatpp/network/tcp/client/ConnectionProvider.hpp"
+#include "client/client.hpp"
+
 #include <iostream>
 std::map<std::string, int> pool;
 
@@ -37,10 +43,39 @@ void run() {
   
 }
 
+void request(){
+	using namespace oatpp::network;
+	using namespace oatpp::web;
+	using namespace oatpp::parser;
+	// Create connection provider
+
+	// Change url and port to NMS static IP
+	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"httpbin.org", 80, oatpp::network::Address::IP_4});	
+
+	// Create httpRequestExecutor & ObjectMapper
+	auto requestExecutor = client::HttpRequestExecutor::createShared(connectionProvider);		
+	auto objectMapper = json::mapping::ObjectMapper::createShared();
+
+	// Create client
+	auto client = Client::createShared(requestExecutor, objectMapper);
+
+	// Make request and get response
+	auto data = client->getResource();
+	if (data->getStatusCode() == 404) {
+		std::cout << "COULD NOT FIND SERVER" << std::endl;
+		// TODO:: Return out with error msg or something.
+	} 
+
+	// Showing that we can fetch response data if needed. (Not really needed for project)
+	std::cout << data->getStatusCode() << std::endl << data->readBodyToString()->c_str() << std::endl;
+}
+
 /**
  *  main
  */
 int main(int argc, const char * argv[]) {
+
+	request();
 
 	OpenSSL_add_all_algorithms();
     OpenSSL_add_all_ciphers();
