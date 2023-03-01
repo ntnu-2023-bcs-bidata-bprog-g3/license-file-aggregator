@@ -6,8 +6,8 @@
 class Client : public oatpp::web::client::ApiClient {
 
   API_CLIENT_INIT(Client)
-
-  API_CALL("GET", "/resource", getResource)
+  // TODO:: Change to correct endpoint. Consult Sander on post body etc.
+  API_CALL("GET", "/addLFA", getResource)
 
 };
 

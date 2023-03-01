@@ -50,7 +50,7 @@ void request(){
 	// Create connection provider
 
 	// Change url and port to NMS static IP
-	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"httpbin.org", 80, oatpp::network::Address::IP_4});	
+	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"10.212.168.185", 8090, oatpp::network::Address::IP_4});	
 
 	// Create httpRequestExecutor & ObjectMapper
 	auto requestExecutor = client::HttpRequestExecutor::createShared(connectionProvider);		
