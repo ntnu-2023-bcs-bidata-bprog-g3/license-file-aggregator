@@ -50,7 +50,8 @@ void request(){
 	// Create connection provider
 
 	// Change url and port to NMS static IP
-	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"10.212.168.185", 8090, oatpp::network::Address::IP_4});	
+	//TODO:: Detect if in prod or dev enc and use either local or proper nms service IPs
+	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"127.0.0.1", 8090, oatpp::network::Address::IP_4});	
 
 	// Create httpRequestExecutor & ObjectMapper
 	auto requestExecutor = client::HttpRequestExecutor::createShared(connectionProvider);		
@@ -59,8 +60,7 @@ void request(){
 	// Create client
 	auto client = Client::createShared(requestExecutor, objectMapper);
 
-	// Make request and get response
-	auto data = client->getResource();
+	auto data = client->getResource("TEST123");
 	if (data->getStatusCode() == 404) {
 		std::cout << "COULD NOT FIND SERVER" << std::endl;
 		// TODO:: Return out with error msg or something.
