@@ -28,7 +28,7 @@ public:
 		const char* crtFile = "../cert/local/cert.crt";
 
 		auto config = oatpp::openssl::Config::createDefaultServerConfigShared(crtFile, pemFile);
-		auto connectionProvider = oatpp::openssl::server::ConnectionProvider::createShared(config, {"localhost", 8443});
+		auto connectionProvider = oatpp::openssl::server::ConnectionProvider::createShared(config, {"0.0.0.0", 8443});
 		return connectionProvider;
 	}());
   

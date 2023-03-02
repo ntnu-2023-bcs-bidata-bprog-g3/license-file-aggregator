@@ -51,7 +51,7 @@ void request(){
 
 	// Change url and port to NMS static IP
 	//TODO:: Detect if in prod or dev enc and use either local or proper nms service IPs
-	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"127.0.0.1", 8090, oatpp::network::Address::IP_4});	
+	auto connectionProvider = tcp::client::ConnectionProvider::createShared({"10.24.103.222", 8090, oatpp::network::Address::IP_4});	
 
 	// Create httpRequestExecutor & ObjectMapper
 	auto requestExecutor = client::HttpRequestExecutor::createShared(connectionProvider);		
@@ -75,7 +75,11 @@ void request(){
  */
 int main(int argc, const char * argv[]) {
 
-	request();
+	try{
+		request();
+	} catch(...){
+		std::cerr<<"Could not connect to NMS. Assuming there is no NMS in network..." << std::endl;
+	}	
 
 	OpenSSL_add_all_algorithms();
     OpenSSL_add_all_ciphers();
