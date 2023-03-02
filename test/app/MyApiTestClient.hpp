@@ -2,13 +2,14 @@
 #ifndef MyApiTestClient_hpp
 #define MyApiTestClient_hpp
 
+#include "dto/DTOs.hpp"
 #include "oatpp/web/client/ApiClient.hpp"
 #include "oatpp/core/macro/codegen.hpp"
 #include <map>
 /* Begin Api Client code generation */
 #include OATPP_CODEGEN_BEGIN(ApiClient)
 
-std::map<std::string, int> pool;
+std::unordered_map<std::string, License::Wrapper> pool;
 
 /**
  * Test API client.

@@ -8,7 +8,7 @@
 #include "oatpp/network/Server.hpp"
 
 #include <iostream>
-std::map<std::string, int> pool;
+std::unordered_map<std::string, License::Wrapper> pool;
 
 void run() {
 
@@ -46,22 +46,10 @@ int main(int argc, const char * argv[]) {
     OpenSSL_add_all_ciphers();
     OpenSSL_add_all_digests(); 
 
+	// Check that root cert can be parsed.
 	X509 * root = readCertFromFile("../cert/external/root.cert");
-	X509 * intermediate = readCertFromFile("../cert/external/intermediate.cert");
-	if(root == NULL || intermediate == NULL){
-		return 0;
-	}
-	const int result =  sig_verify(intermediate, root);
-
-	if(result != 1){
-		err("Could not verify intermediate certificate against root certificate.");
-		return 0;
-	}
-
+	//TODO:: Add check that cert was read successfully. Otherwise exit program.
 	X509_free(root);
-	X509_free(intermediate);
-
-	readPoolFromFile(&pool);
 
 	oatpp::base::Environment::init();
 

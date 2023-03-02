@@ -22,7 +22,8 @@ class License : public oatpp::DTO{
 	DTO_INIT(License, DTO)
 
 	DTO_FIELD(String, name);
-	DTO_FIELD(Int32, time);
+	DTO_FIELD(Int32, duration);
+	DTO_FIELD(String, description);
 };
 
 class LicenseList : public oatpp::DTO{
@@ -30,6 +31,16 @@ class LicenseList : public oatpp::DTO{
 
 	DTO_FIELD(List<Object<License>>, licenses);
 };
+
+
+class SubLicenseFile : public oatpp::DTO{
+	DTO_INIT(SubLicenseFile, DTO)
+
+	DTO_FIELD(Fields<String>, info);
+	DTO_FIELD(Object<License>, license);
+};
+
+
 
 #include OATPP_CODEGEN_END(DTO)
 

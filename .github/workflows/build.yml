@@ -10,7 +10,6 @@ jobs:
       - name: Install dependencies 
         run: |
           cd utility/ && sudo ./install-oatpp-modules.sh && cd ..
-          sudo apt update && sudo apt dist-upgrade -y
           sudo apt-get install libboost-all-dev libssl-dev -y
           git submodule update --init --recursive
       - name: Build project
