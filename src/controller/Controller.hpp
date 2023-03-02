@@ -157,13 +157,13 @@ public:
 	}
 
 	// Convert entire pool to DTOs
-	LicenseList::Wrapper getPool(){
-		auto licenseList = LicenseList::createShared();
+	LicensePayload::Wrapper getPool(){
+		auto licenseList = LicensePayload::createShared();
 		oatpp::List<oatpp::Object<License>> list({});
 		for(auto p: pool){
 			list->emplace(list->end(), p.second);
 		}
-		//licenseList->licenses = list;
+		licenseList->licenses = list;
 		return licenseList;
 	}
 

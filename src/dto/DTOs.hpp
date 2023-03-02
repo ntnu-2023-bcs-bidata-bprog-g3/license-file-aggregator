@@ -34,6 +34,12 @@ class LicenseList : public oatpp::DTO{
 };
 
 
+class LicensePayload : public oatpp::DTO{
+	DTO_INIT(LicensePayload, DTO)
+
+	DTO_FIELD(List<Object<License>>, licenses);
+};
+
 class SubLicenseFile : public oatpp::DTO{
 	DTO_INIT(SubLicenseFile, DTO)
 
