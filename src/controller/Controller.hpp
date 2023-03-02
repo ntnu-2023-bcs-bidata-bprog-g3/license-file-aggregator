@@ -147,8 +147,10 @@ public:
 		readContents(licenseFile, &str);
 		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
 		
+		const auto l = payload->license->keys[0];
+		addLicenseToPool(l);
+
 		// Add license to pool. 
-		addLicenseToPool(payload->license);
 
 		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");
@@ -161,7 +163,7 @@ public:
 		for(auto p: pool){
 			list->emplace(list->end(), p.second);
 		}
-		licenseList->licenses = list;
+		//licenseList->licenses = list;
 		return licenseList;
 	}
 

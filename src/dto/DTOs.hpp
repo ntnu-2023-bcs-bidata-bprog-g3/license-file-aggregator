@@ -26,10 +26,11 @@ class License : public oatpp::DTO{
 	DTO_FIELD(String, description);
 };
 
+
 class LicenseList : public oatpp::DTO{
 	DTO_INIT(LicenseList, DTO)
 
-	DTO_FIELD(List<Object<License>>, licenses);
+	DTO_FIELD(List<Object<License>>, keys);
 };
 
 
@@ -37,7 +38,7 @@ class SubLicenseFile : public oatpp::DTO{
 	DTO_INIT(SubLicenseFile, DTO)
 
 	DTO_FIELD(Fields<String>, info);
-	DTO_FIELD(Object<License>, license);
+	DTO_FIELD(Object<LicenseList>, license);
 };
 
 
