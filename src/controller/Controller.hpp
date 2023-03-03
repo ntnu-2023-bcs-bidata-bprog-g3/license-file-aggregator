@@ -128,13 +128,18 @@ public:
 		X509_free(intCert);
 		X509_free(rootCert);
 
+
 		// Derive intermediate pub.key and try to verify siganture against key and license payload.
 		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
 		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
 
+
 		// Assert success of all previous system commands.
 		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
+
+
 		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
+
 
 		/* create serializer and deserializer configurations */
 		auto serializeConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
@@ -145,12 +150,18 @@ public:
 		// Parse license json into custom DTO
 		std::string str;
 		readContents(licenseFile, &str);
-		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
-		
-		const auto l = payload->license->keys[0];
-		addLicenseToPool(l);
 
-		// Add license to pool. 
+
+		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
+		const auto keys = payload->license->keys;
+
+		// Assert that the key list is not null
+		OATPP_ASSERT_HTTP(keys, Status::CODE_401, "List of license keys not found in payload");
+
+		for(int i = 0; i < keys->size(); i++){
+			const auto l = keys[i];
+			addLicenseToPool(l);
+		}
 
 		/* return 200 */
 		return createResponse(Status::CODE_200, "OK");
