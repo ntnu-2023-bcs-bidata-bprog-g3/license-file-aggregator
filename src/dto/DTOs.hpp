@@ -18,6 +18,13 @@ class HelloWorld : public oatpp::DTO {
   
 };
 
+class LicenseConsumption : public oatpp::DTO{
+	DTO_INIT(LicenseConsumption, DTO)
+
+	DTO_FIELD(String, mediaFunction);
+	DTO_FIELD(Int32, duration);
+};
+
 class License : public oatpp::DTO{
 	DTO_INIT(License, DTO)
 

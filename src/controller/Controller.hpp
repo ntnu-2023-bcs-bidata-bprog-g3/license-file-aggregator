@@ -46,27 +46,27 @@ public:
 		return createDtoResponse(Status::CODE_200, dto);
 	}
 
-	/*
-	ENDPOINT("DELETE", "/api/v1/ConsumeLicense", ConsumeLicense, BODY_DTO(Object<License>, license)){
+	
+	ENDPOINT("DELETE", "/api/v1/consume", ConsumeLicense, BODY_DTO(Object<LicenseConsumption>, consumption)){
 		// Assert requires fields are present.
-	    OATPP_ASSERT_HTTP(license->name, Status::CODE_400, "Missing field 'name'.");
-		OATPP_ASSERT_HTTP(license->time, Status::CODE_400, "Missing field 'time'.");
+	    OATPP_ASSERT_HTTP(consumption->mediaFunction, Status::CODE_400, "Missing field 'mediaFunction'.");
+		OATPP_ASSERT_HTTP(consumption->duration, Status::CODE_400, "Missing field 'duration'.");
 
-		license->name = removeWhitespace(license->name);
+		consumption->mediaFunction = removeWhitespace(consumption->mediaFunction);
 
 		// Assert license is in pool and that it has enough time to consume request.
-		OATPP_ASSERT_HTTP(pool.find(license->name) != pool.end(), Status::CODE_400, "License not found!");
-		OATPP_ASSERT_HTTP(pool[license->name] - license->time >=0, Status::CODE_400, "Time field exceeds license total time pool!");
+		OATPP_ASSERT_HTTP(pool.find(consumption->mediaFunction) != pool.end(), Status::CODE_400, "License not found!");
+		OATPP_ASSERT_HTTP((pool[consumption->mediaFunction]->duration - consumption->duration) >=0, Status::CODE_400, "Time field exceeds license total time pool!");
 
 		// If all is good, subtract time for license.
-		pool[license->name] -= license->time;
-		writePoolToFile(pool);
+		License::Wrapper license = pool[consumption->mediaFunction];
+		license->duration = license->duration - consumption->duration;
+		pool[consumption->mediaFunction] = license;
 
-		license->time = pool[license->name];
 		return createDtoResponse(Status::CODE_200, license);
 	}
 
-	*/
+	
 	ENDPOINT("GET", "/api/v1/licenses", getLicenses){
 		const auto licenses = getPool();
 		return createDtoResponse(Status::CODE_200, licenses);
@@ -128,7 +128,6 @@ public:
 		X509_free(intCert);
 		X509_free(rootCert);
 
-
 		// Derive intermediate pub.key and try to verify siganture against key and license payload.
 		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
 		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
@@ -136,8 +135,6 @@ public:
 
 		// Assert success of all previous system commands.
 		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
-
-
 		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
 
 
