@@ -8,6 +8,5 @@
 #include <string>
 
 int cert_verify(X509* intermediate, X509* root);
-void cert_info(const char* cert_pem);
 
 #endif /* certificates_HPP */
