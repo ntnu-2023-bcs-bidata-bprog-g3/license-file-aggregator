@@ -75,7 +75,58 @@ public:
 	ENDPOINT("POST", "/api/v1/upload", multiUpload,
 			REQUEST(std::shared_ptr<IncomingRequest>, request))
 	{
+		std::string intermediateCert = "";
+		std::string licenseFile = "";
+		std::string signatureFile = "";
 
+		// list of all parts
+		auto parts = multiPart(request);
+		getCorrectParts(parts, &intermediateCert, &licenseFile, &signatureFile);
+		
+		// Assert all files present
+		OATPP_ASSERT_HTTP(intermediateCert!="", Status::CODE_400, "Certificate could not be found.");
+		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
+		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
+
+		// Verify intermediate cert as derived from root.
+		X509 * intCert = readCertFromFile(intermediateCert);
+		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
+		OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
+		X509_free(intCert);
+		X509_free(rootCert);
+
+		// Derive intermediate pub.key and try to verify siganture against key and license payload.
+		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
+		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
+
+		// Assert success of all previous system commands.
+		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
+		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
+
+		// Parse license json into custom DTO
+		std::string str;
+		readContents(licenseFile, &str);
+		const auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
+		const auto keys = payload->license->keys;
+
+		// Assert requires data fields
+		OATPP_ASSERT_HTTP(payload, Status::CODE_401, "Valid payload not found.");
+		OATPP_ASSERT_HTTP(payload->license, Status::CODE_401, "License not found in payload.");
+		OATPP_ASSERT_HTTP(payload->license->keys, Status::CODE_401, "List of license keys not found in payload.");
+
+		// Add all found licenses to pool(s). Will only be one license for sub-licenses and possibly multiple licenses for top-level licenses.
+		for(int i = 0; i < keys->size(); i++){
+			const auto l = keys[i];
+			addLicenseToPool(l);
+		}
+
+		// Return 200.
+		return createResponse(Status::CODE_200, "OK");
+	}
+
+	// Get all parts out of multipart request
+	std::list<std::shared_ptr<multipart::Part>> multiPart(const std::shared_ptr<IncomingRequest> &request){
 		// Set up multipart reader
 		multipart::PartList multipart(request->getHeaders());
 		multipart::Reader multipartReader(&multipart);
@@ -83,15 +134,14 @@ public:
 		request->transferBody(&multipartReader);
 
 		// list of all parts
-		auto parts = multipart.getAllParts();
+		return multipart.getAllParts();
+	}
 
+	// Extract multipart temp file paths from multipart list.
+	void getCorrectParts(const std::list<std::shared_ptr<multipart::Part>> parts, std::string *intermediateCert, std::string *licenseFile, std::string *signatureFile){
 		// Data for filtering out invalid parts.
 		enum Part{intermediate, license, signature};
 		std::map<std::string, Part> acceptedParts{{"intermediate", intermediate}, {"license", license}, {"signature", signature}};
-
-		std::string intermediateCert = "";
-		std::string licenseFile = "";
-		std::string signatureFile = "";
 
 		for(auto& p : parts) {
 
@@ -106,61 +156,11 @@ public:
 
 			// Assign path to correct variable using Part enum.
 			switch(part){ 
-				case intermediate: intermediateCert = location; break;
-				case license: licenseFile = location; break;
-				case signature: signatureFile = location; break;
+				case intermediate: *intermediateCert = location; break;
+				case license: *licenseFile = location; break;
+				case signature: *signatureFile = location; break;
 			}
 		}
-
-		// Assert all files present
-		OATPP_ASSERT_HTTP(intermediateCert!="", Status::CODE_400, "Certificate could not be found.");
-		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
-		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
-
-		// Verify intermediate cert as derived from root.
-		X509 * intCert = readCertFromFile(intermediateCert);
-		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
-		OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
-
-		// Free Cert memory
-		X509_free(intCert);
-		X509_free(rootCert);
-
-		// Derive intermediate pub.key and try to verify siganture against key and license payload.
-		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
-		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
-
-		// Assert success of all previous system commands.
-		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
-		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
-
-		// create serializer and deserializer configurations
-		auto serializeConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
-		auto deserializeConfig = oatpp::parser::json::mapping::Deserializer::Config::createShared();
-		serializeConfig->useBeautifier = true; // Enable beautifier
-		auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
-
-		// Parse license json into custom DTO
-		std::string str;
-		readContents(licenseFile, &str);
-		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
-
-		// Fetch all licenses in license file.
-		const auto keys = payload->license->keys;
-
-		// Assert that the key list is not null
-		OATPP_ASSERT_HTTP(payload, Status::CODE_401, "Valid payload not found.");
-		OATPP_ASSERT_HTTP(payload->license, Status::CODE_401, "License not found in payload.");
-		OATPP_ASSERT_HTTP(payload->license->keys, Status::CODE_401, "List of license keys not found in payload.");
-
-		// Add all found licenses to pool(s). Will only be one license for sub-licenses and possibly multiple licenses for top-level licenses.
-		for(int i = 0; i < keys->size(); i++){
-			const auto l = keys[i];
-			addLicenseToPool(l);
-		}
-
-		// Return 200.
-		return createResponse(Status::CODE_200, "OK");
 	}
 
 	// Convert pool License DTO list.
