@@ -76,19 +76,13 @@ public:
 			REQUEST(std::shared_ptr<IncomingRequest>, request))
 	{
 
-		/* create multipart object */
+		// Set up multipart reader
 		multipart::PartList multipart(request->getHeaders());
-
-		/* create multipart reader */
 		multipart::Reader multipartReader(&multipart);
-
-		/* setup reader to stream parts to a temporary files by default */
 		multipartReader.setDefaultPartReader(multipart::createTemporaryFilePartReader("/tmp" /* /tmp directory */));
-
-		/* upload multipart data */
 		request->transferBody(&multipartReader);
 
-		/* list all parts and locations to corresponding temporary files */
+		// list of all parts
 		auto parts = multipart.getAllParts();
 
 		// Data for filtering out invalid parts.
@@ -98,6 +92,7 @@ public:
 		std::string intermediateCert = "";
 		std::string licenseFile = "";
 		std::string signatureFile = "";
+
 		for(auto& p : parts) {
 
 			// If part is not present in accepted list of parts, continue.
@@ -109,10 +104,11 @@ public:
 			Part part = acceptedParts[p->getName()->c_str()];
 			auto location = p->getPayload()->getLocation()->c_str();
 
+			// Assign path to correct variable using Part enum.
 			switch(part){ 
 				case intermediate: intermediateCert = location; break;
-				case license: licenseFile = location; break; // TODO:: Add support for reading license file;
-				case signature: signatureFile = location; break; // TODO:: Add support for reading signature file;
+				case license: licenseFile = location; break;
+				case signature: signatureFile = location; break;
 			}
 		}
 
@@ -121,10 +117,12 @@ public:
 		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
 		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
 
-		// Verify root and intermediate certs
+		// Verify intermediate cert as derived from root.
 		X509 * intCert = readCertFromFile(intermediateCert);
 		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
 		OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
+
+		// Free Cert memory
 		X509_free(intCert);
 		X509_free(rootCert);
 
@@ -132,13 +130,11 @@ public:
 		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
 		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
 
-
 		// Assert success of all previous system commands.
 		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
 		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
 
-
-		/* create serializer and deserializer configurations */
+		// create serializer and deserializer configurations
 		auto serializeConfig = oatpp::parser::json::mapping::Serializer::Config::createShared();
 		auto deserializeConfig = oatpp::parser::json::mapping::Deserializer::Config::createShared();
 		serializeConfig->useBeautifier = true; // Enable beautifier
@@ -147,24 +143,27 @@ public:
 		// Parse license json into custom DTO
 		std::string str;
 		readContents(licenseFile, &str);
-
-
 		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
+
+		// Fetch all licenses in license file.
 		const auto keys = payload->license->keys;
 
 		// Assert that the key list is not null
-		OATPP_ASSERT_HTTP(keys, Status::CODE_401, "List of license keys not found in payload");
+		OATPP_ASSERT_HTTP(payload, Status::CODE_401, "Valid payload not found.");
+		OATPP_ASSERT_HTTP(payload->license, Status::CODE_401, "License not found in payload.");
+		OATPP_ASSERT_HTTP(payload->license->keys, Status::CODE_401, "List of license keys not found in payload.");
 
+		// Add all found licenses to pool(s). Will only be one license for sub-licenses and possibly multiple licenses for top-level licenses.
 		for(int i = 0; i < keys->size(); i++){
 			const auto l = keys[i];
 			addLicenseToPool(l);
 		}
 
-		/* return 200 */
+		// Return 200.
 		return createResponse(Status::CODE_200, "OK");
 	}
 
-	// Convert entire pool to DTOs
+	// Convert pool License DTO list.
 	LicensePayload::Wrapper getPool(){
 		auto licenseList = LicensePayload::createShared();
 		oatpp::List<oatpp::Object<License>> list({});
@@ -175,16 +174,18 @@ public:
 		return licenseList;
 	}
 
+	// Add license to pool / create new pool from license.
 	void addLicenseToPool(oatpp::Object<License> license){
-		if (pool.find(license->name)!= pool.end()){
+		if (pool.find(license->name)!= pool.end()){ // License is in pool
 			auto curr = pool[license->name];
 			curr->duration=license->duration+curr->duration;
 			pool[license->name] = curr;
-		} else {
-			pool[license->name] = license;
+		} else { // License is not already in pool... Add it.
+			pool[license->name] = license; 
 		}
 	}
 
+	// Cut away whitespace from string.
 	std::string removeWhitespace(std::string str){
 		str = boost::trim_left_copy(str);  // Remove prefix spaces
     	str = boost::trim_right_copy(str); // Remove suffix spaces
