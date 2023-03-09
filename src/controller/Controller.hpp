@@ -75,28 +75,33 @@ public:
 	ENDPOINT("POST", "/api/v1/upload", multiUpload,
 			REQUEST(std::shared_ptr<IncomingRequest>, request))
 	{
-		std::string intermediateCert = "";
+		std::string certificate = "";
 		std::string licenseFile = "";
 		std::string signatureFile = "";
 
 		// list of all parts
 		auto parts = multiPart(request);
-		getCorrectParts(parts, &intermediateCert, &licenseFile, &signatureFile);
+		getCorrectParts(parts, &certificate, &licenseFile, &signatureFile);
 		
 		// Assert all files present
-		OATPP_ASSERT_HTTP(intermediateCert!="", Status::CODE_400, "Certificate could not be found.");
 		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
 		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
 
-		// Verify intermediate cert as derived from root.
-		X509 * intCert = readCertFromFile(intermediateCert);
-		X509 * rootCert = readCertFromFile("../cert/external/root.cert");
-		OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
-		X509_free(intCert);
-		X509_free(rootCert);
+		// Treat top- and sub-licenses differently due to chain of trust.
+		if( certificate != ""){
+			// Verify intermediate cert as derived from root.
+			X509 * intCert = readCertFromFile(certificate);
+			X509 * rootCert = readCertFromFile("../cert/external/root.cert");
+			OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
+			X509_free(intCert);
+			X509_free(rootCert);
+		} else {
+			// Fetch root for certificate
+			certificate = "../cert/external/root.cert";
+		}
 
 		// Derive intermediate pub.key and try to verify siganture against key and license payload.
-		int createIntPubKey = system(("openssl x509 -in "+intermediateCert+" -pubkey -noout > intpubkey.pem").c_str());
+		int createIntPubKey = system(("openssl x509 -in "+certificate+" -pubkey -noout > intpubkey.pem").c_str());
 		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
 
 		// Assert success of all previous system commands.
