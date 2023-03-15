@@ -47,6 +47,7 @@ $ make
 $ ./license_consumer-exe  # - run application.
 
 ```
+the secret is "secret"
 
 #### In Docker
 
