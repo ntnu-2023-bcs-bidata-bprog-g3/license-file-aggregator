@@ -87,6 +87,10 @@ public:
 		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
 		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
 
+		// Verify that certificate is a certificate
+		int correctCert = system(("openssl x509 -in "+certificate+" -text -noout").c_str());
+		OATPP_ASSERT_HTTP(correctCert==0, Status::CODE_400, "Certificate not valid");
+
 		// Treat top- and sub-licenses differently due to chain of trust.
 		if( certificate != ""){
 			// Verify intermediate cert as derived from root.
