@@ -15,6 +15,7 @@
 
 #include <iostream>
 std::unordered_map<std::string, License::Wrapper> pool;
+std::string name;
 
 void run() {
 
@@ -43,7 +44,7 @@ void run() {
   
 }
 
-void request(){
+void request(const std::string name){
 	using namespace oatpp::network;
 	using namespace oatpp::web;
 	using namespace oatpp::parser;
@@ -60,7 +61,7 @@ void request(){
 	// Create client
 	auto client = Client::createShared(requestExecutor, objectMapper);
 
-	auto data = client->getResource("TEST123","8443");
+	auto data = client->getResource(name,"8443");
 	if (data->getStatusCode() == 404) {
 		std::cout << "COULD NOT FIND SERVER" << std::endl;
 		// TODO:: Return out with error msg or something.
@@ -74,9 +75,9 @@ void request(){
  *  main
  */
 int main(int argc, const char * argv[]) {
-
+	name = "test123";
 	try{
-		request();
+		request(name);
 	} catch(...){
 		std::cerr<<"Could not connect to NMS. Assuming there is no NMS in network..." << std::endl;
 	}	

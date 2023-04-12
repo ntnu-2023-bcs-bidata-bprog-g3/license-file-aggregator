@@ -7,5 +7,6 @@
 #include<string>
 
 extern std::unordered_map<std::string, License::Wrapper> pool;
+extern std::string name;
 
 #endif /* shared_hpp */
