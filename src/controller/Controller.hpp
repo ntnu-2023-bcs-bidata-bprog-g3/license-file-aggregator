@@ -79,6 +79,8 @@ public:
 		std::string licenseFile = "";
 		std::string signatureFile = "";
 
+		bool sublicense = true;
+
 		// list of all parts
 		auto parts = multiPart(request);
 		getCorrectParts(parts, &certificate, &licenseFile, &signatureFile);
@@ -102,6 +104,7 @@ public:
 		} else {
 			// Fetch root for certificate
 			certificate = "../cert/external/root.cert";
+			sublicense = false;
 		}
 
 		{ // Ensure integrity of license file
@@ -124,6 +127,11 @@ public:
 		OATPP_ASSERT_HTTP(payload, Status::CODE_401, "Valid payload not found.");
 		OATPP_ASSERT_HTTP(payload->license, Status::CODE_401, "License not found in payload.");
 		OATPP_ASSERT_HTTP(payload->license->keys, Status::CODE_401, "List of license keys not found in payload.");
+
+		if(sublicense){
+			OATPP_ASSERT_HTTP(payload->name, Status::CODE_401, "Name field missing from sub license.");
+			OATPP_ASSERT_HTTP(payload->name == name, Status::CODE_401, "Name field not correct for this LFA.");
+		}
 
 		const auto keys = payload->license->keys;
 		// Add all found licenses to pool(s). Will only be one license for sub-licenses and possibly multiple licenses for top-level licenses.

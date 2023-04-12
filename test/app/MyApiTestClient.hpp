@@ -10,6 +10,7 @@
 #include OATPP_CODEGEN_BEGIN(ApiClient)
 
 std::unordered_map<std::string, License::Wrapper> pool;
+std::string name;
 
 /**
  * Test API client.
