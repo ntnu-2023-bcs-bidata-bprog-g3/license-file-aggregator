@@ -40,7 +40,7 @@ public:
 	{}
 public:
   
-	ENDPOINT("GET", "/", root) {
+	ENDPOINT("GET", "/api/v1/", root) {
 		auto dto = HelloWorld::createShared();
 		dto->message = "Hello World!";
 		return createDtoResponse(Status::CODE_200, dto);
