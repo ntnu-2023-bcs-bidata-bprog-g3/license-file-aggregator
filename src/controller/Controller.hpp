@@ -40,7 +40,7 @@ public:
 	{}
 public:
   
-	ENDPOINT("GET", "/", root) {
+	ENDPOINT("GET", "/api/v1/", root) {
 		auto dto = HelloWorld::createShared();
 		dto->message = "Hello World!";
 		return createDtoResponse(Status::CODE_200, dto);
@@ -79,6 +79,8 @@ public:
 		std::string licenseFile = "";
 		std::string signatureFile = "";
 
+		bool sublicense = true;
+
 		// list of all parts
 		auto parts = multiPart(request);
 		getCorrectParts(parts, &certificate, &licenseFile, &signatureFile);
@@ -87,12 +89,12 @@ public:
 		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
 		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
 
-		// Verify that certificate is a certificate
-		int correctCert = system(("openssl x509 -in "+certificate+" -text -noout").c_str());
-		OATPP_ASSERT_HTTP(correctCert==0, Status::CODE_400, "Certificate not valid");
-
 		// Treat top- and sub-licenses differently due to chain of trust.
-		if( certificate != ""){
+		if(certificate != ""){
+			// Verify that certificate is a certificate
+			int correctCert = system(("openssl x509 -in "+certificate+" -text -noout").c_str());
+			OATPP_ASSERT_HTTP(correctCert==0, Status::CODE_400, "Certificate not valid");
+
 			// Verify intermediate cert as derived from root.
 			X509 * intCert = readCertFromFile(certificate);
 			X509 * rootCert = readCertFromFile("../cert/external/root.cert");
@@ -102,28 +104,36 @@ public:
 		} else {
 			// Fetch root for certificate
 			certificate = "../cert/external/root.cert";
+			sublicense = false;
 		}
 
-		// Derive intermediate pub.key and try to verify siganture against key and license payload.
-		int createIntPubKey = system(("openssl x509 -in "+certificate+" -pubkey -noout > intpubkey.pem").c_str());
-		int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
+		{ // Ensure integrity of license file
+			// Derive intermediate pub.key and try to verify siganture against key and license payload.
+			int createIntPubKey = system(("openssl x509 -in "+certificate+" -pubkey -noout > intpubkey.pem").c_str());
+			int verifySignature = system(("openssl dgst -sha256 -verify intpubkey.pem -signature "+signatureFile+" "+licenseFile).c_str());
 
-		// Assert success of all previous system commands.
-		OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
-		OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
+			// Assert success of all previous system commands.
+			OATPP_ASSERT_HTTP(createIntPubKey==0, Status::CODE_400, "Could not derive public key from certificate.");
+			OATPP_ASSERT_HTTP(verifySignature==0, Status::CODE_401, "Could not verify license with license signature.");
+		}
 
 		// Parse license json into custom DTO
 		std::string str;
 		readContents(licenseFile, &str);
 		const auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
 		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
-		const auto keys = payload->license->keys;
 
 		// Assert requires data fields
 		OATPP_ASSERT_HTTP(payload, Status::CODE_401, "Valid payload not found.");
 		OATPP_ASSERT_HTTP(payload->license, Status::CODE_401, "License not found in payload.");
 		OATPP_ASSERT_HTTP(payload->license->keys, Status::CODE_401, "List of license keys not found in payload.");
 
+		if(sublicense){
+			OATPP_ASSERT_HTTP(payload->name, Status::CODE_401, "Name field missing from sub license.");
+			OATPP_ASSERT_HTTP(payload->name == name, Status::CODE_401, "Name field not correct for this LFA.");
+		}
+
+		const auto keys = payload->license->keys;
 		// Add all found licenses to pool(s). Will only be one license for sub-licenses and possibly multiple licenses for top-level licenses.
 		for(int i = 0; i < keys->size(); i++){
 			const auto l = keys[i];

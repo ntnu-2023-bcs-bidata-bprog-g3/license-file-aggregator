@@ -10,6 +10,7 @@
 #include OATPP_CODEGEN_BEGIN(ApiClient)
 
 std::unordered_map<std::string, License::Wrapper> pool;
+std::string name;
 
 /**
  * Test API client.
@@ -19,7 +20,7 @@ class MyApiTestClient : public oatpp::web::client::ApiClient {
 
 	API_CLIENT_INIT(MyApiTestClient)
 
-	API_CALL("GET", "/", getRoot)
+	API_CALL("GET", "/api/v1/", getRoot)
 
 	// TODO - add more client API calls here
 

@@ -50,6 +50,7 @@ class LicensePayload : public oatpp::DTO{
 class SubLicenseFile : public oatpp::DTO{
 	DTO_INIT(SubLicenseFile, DTO)
 
+	DTO_FIELD(String, name);
 	DTO_FIELD(Fields<String>, info);
 	DTO_FIELD(Object<LicenseList>, license);
 };
