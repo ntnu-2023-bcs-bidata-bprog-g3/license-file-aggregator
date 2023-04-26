@@ -15,4 +15,4 @@ jobs:
       - name: Build project
         run: mkdir build && cd build && cmake .. && make
       - name: Run tests
-        run: cd build && sudo ./license_consumer-test
+        run: cd build && sudo ./lfa-test

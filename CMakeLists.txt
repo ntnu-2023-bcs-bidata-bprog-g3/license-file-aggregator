@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.1)
 
-set(project_name license_consumer) ## rename your project here
+set(project_name lfa) ## rename your project here
 
 project(${project_name})
 

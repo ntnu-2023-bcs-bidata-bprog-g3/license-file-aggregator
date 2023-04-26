@@ -1,57 +1,78 @@
-# oatpp-starter [![Build Status](https://dev.azure.com/lganzzzo/lganzzzo/_apis/build/status/oatpp.oatpp-starter?branchName=master)](https://dev.azure.com/lganzzzo/lganzzzo/_build/latest?definitionId=10&branchName=master)
+# License File Aggregator
 
-Starter project of oat++ (AKA oatpp) application. Based on oatpp Multithreaded (Simple) API.
-
+## Oatpp
+This repo was based on a starter project of oat++. 
 See more:
 
 - [Oat++ Website](https://oatpp.io/)
 - [Oat++ Github Repository](https://github.com/oatpp/oatpp)
-- [Get Started](https://oatpp.io/docs/start)
 
 ## Overview
+
+### Purpose
+The `License File Aggregator (LFA)` is made to function as a functionality consumer. I.E the place where a license for a certain functionality is actually ran and used up. 
+
+It has been designed for operating within an `Offline License Management System (olm)` and is assumed to be ran on proprietary hardware as to ensure its integrity. 
+
+This repo was made to be used together with the `nms` and functions as a Proof of Concept toghether with it. This means certain functionality that would be required within a real `olm` system is either missing / changed for time or due to it having been proved in the `nms` already.
 
 ### Project layout
 
 ```
-|- CMakeLists.txt                        // projects CMakeLists.txt
-|- src/
-|    |
-|    |- controller/                      // Folder containing MyController where all endpoints are declared
-|    |- dto/                             // DTOs are declared here
-|    |- AppComponent.hpp                 // Service config
-|    |- App.cpp                          // main() is here
-|
-|- test/                                 // test folder
-|- utility/install-oatpp-modules.sh      // utility script to install required oatpp-modules.  
+.
+|-- CMakeLists.txt
+|-- LICENSE
+|-- README.md
+|-- src
+|   |-- App.cpp
+|   |-- AppComponent.hpp
+|   |-- client
+|   |   `-- client.hpp
+|   |-- controller
+|   |   |-- Controller.cpp
+|   |   `-- Controller.hpp
+|   |-- dto
+|   |   `-- DTOs.hpp
+|   |-- error
+|   |   |-- error.cpp
+|   |   `-- error.hpp
+|   |-- file
+|   |   |-- fileHandler.cpp
+|   |   `-- fileHandler.hpp
+|   |-- shared.hpp
+|   `-- ssl
+|       |-- certificates.cpp
+|       `-- certificates.hpp
+|-- test
+|   |-- ControllerTest.cpp
+|   |-- ControllerTest.hpp
+|   |-- app
+|   |   |-- MyApiTestClient.hpp
+|   |   `-- TestComponent.hpp
+|   `-- tests.cpp
+`-- utility
+    `-- install-oatpp-modules.sh
 ```
 
 ---
 
 ### Build and Run
 
-Fetch required submodule.
+**Requires**   
+- Fetch git submodule `oatpp-openssl`
 ```
 $ git submodule update --init --recursive
 ```
-#### Using CMake
-
-**Requires** 
-
 - `oatpp` module installed. You may run `utility/install-oatpp-modules.sh` 
 script to install required oatpp modules.
+
+#### Using CMake
 
 ```
 $ mkdir build && cd build
 $ cmake ..
 $ make 
-$ ./license_consumer-exe  # - run application.
+$ ./lfa-exe  # - run application.
 
 ```
-the secret is "secret"
-
-#### In Docker
-
-```
-$ docker build -t oatpp-starter .
-$ docker run -p 8000:8000 -t oatpp-starter
-```
+the secret is '`secret`'
