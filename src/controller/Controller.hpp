@@ -79,8 +79,6 @@ public:
 		std::string licenseFile = "";
 		std::string signatureFile = "";
 
-		bool sublicense = true;
-
 		// list of all parts
 		auto parts = multiPart(request);
 		getCorrectParts(parts, &certificate, &licenseFile, &signatureFile);
@@ -88,10 +86,10 @@ public:
 		// Assert all files present
 		OATPP_ASSERT_HTTP(licenseFile!="", Status::CODE_400, "License file could not be found.");
 		OATPP_ASSERT_HTTP(signatureFile!="", Status::CODE_400, "Signature file could not be found.");
+		OATPP_ASSERT_HTTP(certificate!="", Status::CODE_400, "Certificate file could not be found.");
 
-		// Treat top- and sub-licenses differently due to chain of trust.
-		if(certificate != ""){
-			// Verify that certificate is a certificate
+		{ // Ensure Chain of trust
+			// Verify that certificate file is valid
 			int correctCert = system(("openssl x509 -in "+certificate+" -text -noout").c_str());
 			OATPP_ASSERT_HTTP(correctCert==0, Status::CODE_400, "Certificate not valid");
 
@@ -101,10 +99,6 @@ public:
 			OATPP_ASSERT_HTTP(cert_verify(intCert, rootCert)==1, Status::CODE_401, "Certificate could not be validated!");
 			X509_free(intCert);
 			X509_free(rootCert);
-		} else {
-			// Fetch root for certificate
-			certificate = "../cert/external/root.cert";
-			sublicense = false;
 		}
 
 		{ // Ensure integrity of license file
@@ -118,23 +112,24 @@ public:
 		}
 
 		// Parse license json into custom DTO
+		/*
 		std::string str;
 		readContents(licenseFile, &str);
 		const auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
 		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
+		*/
+		const auto payload = subLicenseFromFile(licenseFile);
+
 
 		// Assert requires data fields
 		OATPP_ASSERT_HTTP(payload, Status::CODE_401, "Valid payload not found.");
 		OATPP_ASSERT_HTTP(payload->license, Status::CODE_401, "License not found in payload.");
 		OATPP_ASSERT_HTTP(payload->license->keys, Status::CODE_401, "List of license keys not found in payload.");
-
-		if(sublicense){
-			OATPP_ASSERT_HTTP(payload->name, Status::CODE_401, "Name field missing from sub license.");
-			OATPP_ASSERT_HTTP(payload->name == name, Status::CODE_401, "Name field not correct for this LFA.");
-		}
+		OATPP_ASSERT_HTTP(payload->name, Status::CODE_401, "Name field missing from sub license.");
+		OATPP_ASSERT_HTTP(payload->name == name, Status::CODE_401, "Name field not correct for this LFA.");
 
 		const auto keys = payload->license->keys;
-		// Add all found licenses to pool(s). Will only be one license for sub-licenses and possibly multiple licenses for top-level licenses.
+		// Add all found licenses to pool(s).
 		for(int i = 0; i < keys->size(); i++){
 			const auto l = keys[i];
 			addLicenseToPool(l);
@@ -142,6 +137,14 @@ public:
 
 		// Return 200.
 		return createResponse(Status::CODE_200, "OK");
+	}
+
+	SubLicenseFile::Wrapper subLicenseFromFile(std::string licenseFile){
+		std::string str;
+		readContents(licenseFile, &str);
+		const auto jsonObjectMapper = oatpp::parser::json::mapping::ObjectMapper::createShared();
+		const auto payload = jsonObjectMapper->readFromString<oatpp::Object<SubLicenseFile>>(str);
+		return payload;
 	}
 
 	// Get all parts out of multipart request
