@@ -2,7 +2,7 @@
 
 #include "controller/Controller.hpp"
 
-#include "app/MyApiTestClient.hpp"
+#include "app/ApiTestClient.hpp"
 #include "app/TestComponent.hpp"
 
 #include "oatpp/web/client/HttpRequestExecutor.hpp"
@@ -33,7 +33,7 @@ void ControllerTest::onRun() {
 		auto requestExecutor = oatpp::web::client::HttpRequestExecutor::createShared(clientConnectionProvider);
 
 		/* Create Test API client */
-		auto client = MyApiTestClient::createShared(requestExecutor, objectMapper);
+		auto client = ApiTestClient::createShared(requestExecutor, objectMapper);
 
 		/* Call server API */
 		/* Call root endpoint of MyController */
