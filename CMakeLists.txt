@@ -41,14 +41,14 @@ target_include_directories(${project_name}-lib PUBLIC ${Boost_INCLUDE_DIRS})
 
 add_executable(${project_name}-exe
         src/App.cpp
-        test/app/MyApiTestClient.hpp)
+        test/app/ApiTestClient.hpp)
 target_link_libraries(${project_name}-exe ${project_name}-lib)
 add_dependencies(${project_name}-exe ${project_name}-lib)
 
 add_executable(${project_name}-test
         test/tests.cpp
         test/app/TestComponent.hpp
-        test/app/MyApiTestClient.hpp
+        test/app/ApiTestClient.hpp
         test/ControllerTest.cpp
         test/ControllerTest.hpp
 )
