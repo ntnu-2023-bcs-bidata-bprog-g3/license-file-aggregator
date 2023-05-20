@@ -60,10 +60,18 @@ script to install required oatpp modules.
 
 ### Build
 
+For Linux:
 ```
 $ mkdir build && cd build
 $ cmake ..
 $ make 
+```
+
+For MacOS:
+```
+$ mkdir build && cd build
+$ cmake -DOPENSSL_ROOT_DIR="/usr/local/opt/openssl@1.1" ..
+$ make
 ```
 
 ### Run
