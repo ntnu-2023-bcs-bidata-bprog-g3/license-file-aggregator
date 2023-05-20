@@ -1,6 +1,6 @@
 
-#ifndef MyApiTestClient_hpp
-#define MyApiTestClient_hpp
+#ifndef ApiTestClient_hpp
+#define ApiTestClient_hpp
 
 #include "dto/DTOs.hpp"
 #include "oatpp/web/client/ApiClient.hpp"
@@ -16,9 +16,9 @@ std::string name;
  * Test API client.
  * Use this client to call application APIs.
  */
-class MyApiTestClient : public oatpp::web::client::ApiClient {
+class ApiTestClient : public oatpp::web::client::ApiClient {
 
-	API_CLIENT_INIT(MyApiTestClient)
+	API_CLIENT_INIT(ApiTestClient)
 
 	API_CALL("GET", "/api/v1/", getRoot)
 
